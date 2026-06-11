@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════
+         MEDICINE BOOKING
+    ══════════════════════════════════════════════ -->
+    <record id="view_dawai_booking_list" model="ir.ui.view">
+        <field name="name">dawai.medicine.booking.list</field>
+        <field name="model">dawai.medicine.booking</field>
+        <field name="arch" type="xml">
+            <list string="الحجوزات"
+                  decoration-success="status == 'dispensed'"
+                  decoration-warning="status == 'active'"
+                  decoration-danger="status == 'expired'"
+                  decoration-muted="status == 'cancelled'">
+                <field name="booking_code" string="رمز الحجز"/>
+                <field name="pat_id" string="المريض"/>
+                <field name="med_id" string="الدواء"/>
+                <field name="pharm_id" string="الصيدلية"/>
+                <field name="qty_booked" string="الكمية"/>
+                <field name="booking_date" string="تاريخ الحجز" widget="datetime"/>
+                <field name="pickup_deadline" string="الموعد النهائي" widget="datetime"/>
+                <field name="status" string="الحالة" widget="badge"/>
+                <field name="requires_prescription" string="يحتاج وصفة" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dawai_booking_form" model="ir.ui.view">
+        <field name="name">dawai.medicine.booking.form</field>
+        <field name="model">dawai.medicine.booking</field>
+        <field name="arch" type="xml">
+            <form string="بيانات الحجز">
+                <header>
+                    <button name="action_open_dispense"
+                            type="object"
+                            string="تأكيد الصرف (Dispense)"
+                            class="oe_highlight"
+                            invisible="status != 'active'"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="إلغاء الحجز"
+                            class="btn-danger"
+                            invisible="status != 'active'"
+                            confirm="هل تريد إلغاء هذا الحجز؟"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="active,dispensed,cancelled,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="booking_code" string="رمز الحجز"/>
+                        <h1>
+                            <field name="booking_code" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="بيانات المريض والدواء">
+                            <field name="pat_id" string="المريض"
+                                   readonly="status != 'active'"/>
+                            <field name="stock_id" string="المخزون (دواء + صيدلية)"
+                                   readonly="status != 'active'"/>
+                            <field name="med_id" string="الدواء" readonly="1"/>
+                            <field name="pharm_id" string="الصيدلية" readonly="1"/>
+                            <field name="qty_booked" string="الكمية المحجوزة"
+                                   readonly="status != 'active'"/>
+                            <field name="requires_prescription"
+                                   string="يحتاج وصفة؟" readonly="1"/>
+                        </group>
+                        <group string="بيانات الوقت">
+                            <field name="booking_date" string="وقت الحجز" readonly="1"/>
+                            <field name="pickup_deadline" string="الموعد النهائي" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="رموز التحقق">
+                        <group>
+                            <field name="booking_code" string="رمز الحجز (للصيدلاني)" readonly="1"/>
+                            <field name="verification_code" string="رمز التحقق (للنظام)" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dawai_booking_search" model="ir.ui.view">
+        <field name="name">dawai.medicine.booking.search</field>
+        <field name="model">dawai.medicine.booking</field>
+        <field name="arch" type="xml">
+            <search string="بحث في الحجوزات">
+                <field name="booking_code" string="رمز الحجز"/>
+                <field name="pat_id" string="المريض"/>
+                <field name="med_id" string="الدواء"/>
+                <field name="pharm_id" string="الصيدلية"/>
+                <separator/>
+                <filter name="status_active" string="نشطة"
+                        domain="[('status','=','active')]"/>
+                <filter name="status_dispensed" string="تم صرفها"
+                        domain="[('status','=','dispensed')]"/>
+                <filter name="status_expired" string="منتهية"
+                        domain="[('status','=','expired')]"/>
+                <filter name="status_cancelled" string="ملغاة"
+                        domain="[('status','=','cancelled')]"/>
+                <separator/>
+                <filter name="needs_presc" string="تحتاج وصفة"
+                        domain="[('requires_prescription','=',True)]"/>
+                <group expand="0" string="تجميع حسب">
+                    <filter name="group_status" string="الحالة"
+                            context="{'group_by':'status'}"/>
+                    <filter name="group_pharmacy" string="الصيدلية"
+                            context="{'group_by':'pharm_id'}"/>
+                    <filter name="group_patient" string="المريض"
+                            context="{'group_by':'pat_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dawai_booking" model="ir.actions.act_window">
+        <field name="name">الحجوزات</field>
+        <field name="res_model">dawai.medicine.booking</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dawai_booking_search"/>
+        <field name="context">{'search_default_status_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">لا توجد حجوزات بعد</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════
+         PRESCRIPTION
+    ══════════════════════════════════════════════ -->
+    <record id="view_dawai_prescription_list" model="ir.ui.view">
+        <field name="name">dawai.prescription.list</field>
+        <field name="model">dawai.prescription</field>
+        <field name="arch" type="xml">
+            <list string="الوصفات الطبية"
+                  decoration-muted="is_valid == False">
+                <field name="pat_id" string="المريض"/>
+                <field name="med_id" string="الدواء"/>
+                <field name="doctor_name" string="الطبيب"/>
+                <field name="issue_date" string="تاريخ الإصدار"/>
+                <field name="expiry_date" string="تاريخ الانتهاء"/>
+                <field name="allowed_qty" string="المسموح"/>
+                <field name="qty_dispensed_so_far" string="المصروف"/>
+                <field name="qty_remaining" string="المتبقي"/>
+                <field name="is_valid" string="سارية؟" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dawai_prescription_form" model="ir.ui.view">
+        <field name="name">dawai.prescription.form</field>
+        <field name="model">dawai.prescription</field>
+        <field name="arch" type="xml">
+            <form string="بيانات الوصفة الطبية">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="الربط التسلسلي (من الحجز)">
+                            <field name="booking_id" string="الحجز المرتبط"/>
+                            <field name="pat_id" string="المريض" readonly="1"/>
+                            <field name="med_id" string="الدواء" readonly="1"/>
+                            <field name="pharm_id" string="الصيدلية" readonly="1"/>
+                        </group>
+                        <group string="بيانات الطبيب">
+                            <field name="doctor_name" string="اسم الطبيب"/>
+                            <field name="doctor_phone" string="هاتف الطبيب"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="الكميات">
+                            <field name="allowed_qty" string="الكمية المسموحة شهرياً"/>
+                            <field name="qty_dispensed_so_far" string="المصروف حتى الآن" readonly="1"/>
+                            <field name="qty_remaining" string="المتبقي" readonly="1"/>
+                        </group>
+                        <group string="التواريخ">
+                            <field name="issue_date" string="تاريخ الإصدار"/>
+                            <field name="expiry_date" string="تاريخ الانتهاء"/>
+                            <field name="is_valid" string="سارية؟" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dawai_prescription_search" model="ir.ui.view">
+        <field name="name">dawai.prescription.search</field>
+        <field name="model">dawai.prescription</field>
+        <field name="arch" type="xml">
+            <search string="بحث في الوصفات">
+                <field name="pat_id" string="المريض"/>
+                <field name="med_id" string="الدواء"/>
+                <field name="doctor_name" string="الطبيب"/>
+                <separator/>
+                <filter name="valid" string="سارية (لم تنتهِ)"
+                        domain="[('expiry_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="no_expiry" string="بدون تاريخ انتهاء"
+                        domain="[('expiry_date','=',False)]"/>
+                <filter name="expired" string="منتهية"
+                        domain="[('expiry_date', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="تجميع حسب">
+                    <filter name="group_patient" string="المريض"
+                            context="{'group_by':'pat_id'}"/>
+                    <filter name="group_medicine" string="الدواء"
+                            context="{'group_by':'med_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dawai_prescription" model="ir.actions.act_window">
+        <field name="name">الوصفات الطبية</field>
+        <field name="res_model">dawai.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dawai_prescription_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">لا توجد وصفات مسجلة بعد</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════
+         DISPENSING TRANSACTION
+    ══════════════════════════════════════════════ -->
+    <record id="view_dawai_dispensing_list" model="ir.ui.view">
+        <field name="name">dawai.dispensing.transaction.list</field>
+        <field name="model">dawai.dispensing.transaction</field>
+        <field name="arch" type="xml">
+            <list string="عمليات الصرف">
+                <field name="dispense_date" string="تاريخ الصرف" widget="datetime"/>
+                <field name="booking_id" string="رمز الحجز"/>
+                <field name="pat_id" string="المريض"/>
+                <field name="med_id" string="الدواء"/>
+                <field name="pharm_id" string="الصيدلية"/>
+                <field name="qty_dispensed" string="الكمية"/>
+                <field name="unit_price" string="سعر الوحدة"/>
+                <field name="total_price" string="الإجمالي"/>
+                <field name="presc_id" string="الوصفة" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dawai_dispensing_form" model="ir.ui.view">
+        <field name="name">dawai.dispensing.transaction.form</field>
+        <field name="model">dawai.dispensing.transaction</field>
+        <field name="arch" type="xml">
+            <form string="عملية صرف دواء">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="الربط التسلسلي (من الحجز)">
+                            <field name="booking_id" string="رقم الحجز"
+                                   domain="[('status','=','active')]"/>
+                            <field name="pat_id" string="المريض" readonly="1"/>
+                            <field name="med_id" string="الدواء" readonly="1"/>
+                            <field name="pharm_id" string="الصيدلية" readonly="1"/>
+                        </group>
+                        <group string="بيانات الصرف">
+                            <field name="presc_id" string="الوصفة الطبية (اختياري)"/>
+                            <field name="qty_dispensed" string="الكمية المصروفة"/>
+                            <field name="dispense_date" string="وقت الصرف" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="السعر">
+                            <field name="unit_price" string="سعر الوحدة (SDG)"/>
+                            <field name="total_price" string="الإجمالي (SDG)" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dawai_dispensing_search" model="ir.ui.view">
+        <field name="name">dawai.dispensing.transaction.search</field>
+        <field name="model">dawai.dispensing.transaction</field>
+        <field name="arch" type="xml">
+            <search string="بحث في عمليات الصرف">
+                <field name="booking_id" string="رمز الحجز"/>
+                <field name="pat_id" string="المريض"/>
+                <field name="med_id" string="الدواء"/>
+                <field name="pharm_id" string="الصيدلية"/>
+                <separator/>
+                <filter name="has_presc" string="بوصفة"
+                        domain="[('presc_id','!=',False)]"/>
+                <filter name="no_presc" string="بدون وصفة"
+                        domain="[('presc_id','=',False)]"/>
+                <group expand="0" string="تجميع حسب">
+                    <filter name="group_pharmacy" string="الصيدلية"
+                            context="{'group_by':'pharm_id'}"/>
+                    <filter name="group_medicine" string="الدواء"
+                            context="{'group_by':'med_id'}"/>
+                    <filter name="group_month" string="الشهر"
+                            context="{'group_by':'dispense_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dawai_dispensing" model="ir.actions.act_window">
+        <field name="name">عمليات الصرف</field>
+        <field name="res_model">dawai.dispensing.transaction</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dawai_dispensing_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">لا توجد عمليات صرف بعد</p>
+        </field>
+    </record>
+
+    <template id="patient_my_bookings_template" name="My Bookings">
+        <t t-call="website.layout">
+            <div id="wrap" class="container mt-5 mb-5" style="direction: rtl; text-align: right;">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="text-primary font-weight-bold mb-4"><i class="fa fa-list-alt"></i> سجل حجوزاتي الطبية</h2>
+
+                        <t t-if="not bookings">
+                            <div class="alert alert-info text-center py-5 shadow-sm border-0 rounded">
+                                <h4 class="mb-3">لا توجد لديك أي حجوزات سابقة في منصة دوائي.</h4>
+                                <a href="/medicines" class="btn btn-primary rounded-pill px-4 mt-2">تصفح الأدوية المتاحة</a>
+                            </div>
+                        </t>
+
+                        <t t-else="">
+                            <div class="table-responsive bg-white shadow-sm rounded p-3">
+                                <table class="table table-hover border text-right">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>رمز الحجز</th>
+                                            <th>الدواء</th>
+                                            <th>الصيدلية</th>
+                                            <th>الكمية</th>
+                                            <th>الإجمالي</th>
+                                            <th>تاريخ الحجز</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="bookings" t-as="booking">
+                                            <tr>
+                                                <td class="align-middle font-weight-bold font-monospace"><t t-esc="booking.booking_code"/></td>
+                                                <td class="align-middle text-primary font-weight-bold"><t t-esc="booking.med_id.med_name"/></td>
+                                                <td class="align-middle"><t t-esc="booking.pharm_id.pharm_name"/></td>
+                                                <td class="align-middle"><t t-esc="booking.qty_booked"/> وحدة</td>
+                                                <td class="align-middle font-weight-bold text-success"><t t-esc="booking.total_price"/> SDG</td>
+                                                <td class="align-middle"><span t-field="booking.booking_date" t-options="{'widget': 'date'}"/></td>
+                                                <td class="align-middle">
+                                                    <span t-if="booking.status == 'active'" class="badge bg-warning text-dark px-3 py-2 rounded-pill">مؤكد / نشط</span>
+                                                    <span t-elif="booking.status == 'dispensed'" class="badge bg-success px-3 py-2 rounded-pill">تم الصرف</span>
+                                                    <span t-elif="booking.status == 'cancelled'" class="badge bg-secondary px-3 py-2 rounded-pill">ملغي</span>
+                                                    <span t-elif="booking.status == 'expired'" class="badge bg-danger px-3 py-2 rounded-pill">منتهي المدة</span>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <a href="/medicines" class="btn btn-outline-primary px-5 rounded-pill">إجراء حجز دواء جديد</a>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

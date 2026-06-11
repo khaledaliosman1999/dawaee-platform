@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════
+         مجموعات الأمان — منصة دوائي
+         ══════════════════════════════════════════════════
+         
+         التصميم الصحيح لأنواع المستخدمين:
+         
+         group_dawai_patient    → Portal User   (base.group_portal)
+         group_dawai_pharmacist → Internal User  (base.group_user)
+         group_dawai_admin      → Internal User  (يرث الصيدلاني)
+         
+         ❌ الخطأ السابق: Admin يرث Patient → يرث Portal
+            هذا يعني Admin = Portal + Internal → تعارض!
+         
+         ✅ الحل: الصيدلاني والمدير لا يرثان Patient مباشرة
+            كل مجموعة ترتبط بنوع مستخدم واحد فقط.
+         ══════════════════════════════════════════════════ -->
+
+    <record id="module_category_dawai" model="ir.module.category">
+        <field name="name">منصة دوائي</field>
+        <field name="description">إدارة وتوفير الأدوية المزمنة والنادرة</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- ─── 1. مريض مسجل → Portal User ──────────────── -->
+    <!-- المريض يدخل عبر بوابة Odoo Portal -->
+    <record id="group_dawai_patient" model="res.groups">
+        <field name="name">مريض مسجل</field>
+        <field name="category_id" ref="module_category_dawai"/>
+        <field name="comment">
+            يستطيع البحث والتصفح وإنشاء وإلغاء حجوزاته الخاصة.
+            نوع الحساب: Portal User.
+        </field>
+        <field name="implied_ids"
+               eval="[(4, ref('base.group_portal'))]"/>
+    </record>
+
+    <!-- ─── 2. مسؤول الصيدلية → Internal User ─────── -->
+    <!-- الصيدلاني موظف داخلي - لا يرث group_patient حتى لا يصبح Portal -->
+    <record id="group_dawai_pharmacist" model="res.groups">
+        <field name="name">مسؤول الصيدلية</field>
+        <field name="category_id" ref="module_category_dawai"/>
+        <field name="comment">
+            يدير المخزون، يستلم الشحنات، يسجل الوصفات، يصرف الأدوية.
+            نوع الحساب: Internal User.
+        </field>
+        <field name="implied_ids"
+               eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- ─── 3. مدير النظام → Internal User ──────────── -->
+    <!-- يرث الصيدلاني (Internal) فقط - بدون إضافة users يدوياً -->
+    <record id="group_dawai_admin" model="res.groups">
+        <field name="name">مدير النظام</field>
+        <field name="category_id" ref="module_category_dawai"/>
+        <field name="comment">
+            صلاحيات كاملة: إدارة الصيدليات، الموردين، المرضى،
+            التقارير الشاملة، إدارة الصلاحيات.
+            نوع الحساب: Internal User.
+        </field>
+        <field name="implied_ids"
+               eval="[(4, ref('group_dawai_pharmacist'))]"/>
+    </record>
+
+</odoo>

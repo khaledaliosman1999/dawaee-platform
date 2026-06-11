@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- ══════════════════════════════════════════════
+     STOCK INBOUND
+══════════════════════════════════════════════ -->
+    <record id="view_dawai_stock_inbound_list" model="ir.ui.view">
+        <field name="name">dawai.stock.inbound.list</field>
+        <field name="model">dawai.stock.inbound</field>
+        <field name="arch" type="xml">
+            <list string="شحنات التوريد"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'confirmed'"
+                  decoration-muted="state == 'draft'">
+                <field name="in_date"     string="تاريخ الشحنة"/>
+                <field name="pharm_id"    string="الصيدلية"/>
+                <field name="med_id"      string="الدواء"/>
+                <field name="supplier_id" string="المورد"/>
+                <field name="qty_in"      string="الكمية"/>
+                <field name="batch_no"    string="رقم الدفعة"/>
+                <field name="state"       string="الحالة" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dawai_stock_inbound_form" model="ir.ui.view">
+        <field name="name">dawai.stock.inbound.form</field>
+        <field name="model">dawai.stock.inbound</field>
+        <field name="arch" type="xml">
+            <form string="شحنة توريد">
+                <header>
+                    <button name="action_confirm_and_update_inventory"
+                            type="object"
+                            string="تأكيد وتحديث المخزون"
+                            class="btn-primary"
+                            invisible="state == 'done'"
+                            confirm="سيتم تحديث كمية المخزون فوراً. هل تأكد؟"/>
+                    <button name="action_reset_to_draft"
+                            type="object"
+                            string="إعادة للمسودة"
+                            invisible="state != 'confirmed'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="بيانات الشحنة">
+                            <field name="pharm_id"    string="الصيدلية المستلِمة"
+                                   readonly="state == 'done'"/>
+                            <field name="supplier_id" string="المورد"
+                                   readonly="state == 'done'"/>
+                            <field name="med_id"      string="الدواء"
+                                   readonly="state == 'done'"/>
+                        </group>
+                        <group string="بيانات الكمية">
+                            <field name="qty_in"   string="الكمية الواردة"
+                                   readonly="state == 'done'"/>
+                            <field name="in_date"  string="تاريخ الدخول"
+                                   readonly="state == 'done'"/>
+                            <field name="batch_no" string="رقم الدفعة"
+                                   readonly="state == 'done'"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dawai_stock_inbound_search" model="ir.ui.view">
+        <field name="name">dawai.stock.inbound.search</field>
+        <field name="model">dawai.stock.inbound</field>
+        <field name="arch" type="xml">
+            <search string="بحث في شحنات التوريد">
+                <field name="pharm_id"    string="الصيدلية"/>
+                <field name="med_id"      string="الدواء"/>
+                <field name="supplier_id" string="المورد"/>
+                <field name="batch_no"    string="رقم الدفعة"/>
+                <separator/>
+                <filter name="state_done"      string="مُعالَجة"
+                        domain="[('state','=','done')]"/>
+                <filter name="state_confirmed" string="مؤكدة"
+                        domain="[('state','=','confirmed')]"/>
+                <filter name="state_draft"     string="مسودة"
+                        domain="[('state','=','draft')]"/>
+                <group expand="0" string="تجميع حسب">
+                    <filter name="group_pharmacy"  string="الصيدلية"
+                            context="{'group_by':'pharm_id'}"/>
+                    <filter name="group_supplier"  string="المورد"
+                            context="{'group_by':'supplier_id'}"/>
+                    <filter name="group_month"     string="الشهر"
+                            context="{'group_by':'in_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dawai_stock_inbound" model="ir.actions.act_window">
+        <field name="name">شحنات التوريد</field>
+        <field name="res_model">dawai.stock.inbound</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dawai_stock_inbound_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">سجّل أول شحنة توريد</p>
+        </field>
+    </record>
+
+<!-- ══════════════════════════════════════════════
+     INVENTORY
+══════════════════════════════════════════════ -->
+    <record id="view_dawai_inventory_list" model="ir.ui.view">
+        <field name="name">dawai.inventory.list</field>
+        <field name="model">dawai.inventory</field>
+        <field name="arch" type="xml">
+            <list string="المخزون"
+                  decoration-danger="is_low_stock == True"
+                  decoration-muted="active == False">
+                <field name="pharm_id"        string="الصيدلية"/>
+                <field name="med_id"          string="الدواء"/>
+                <field name="batch_no"        string="الدفعة"/>
+                <field name="supplier_id"     string="المورد"/>
+                <field name="qty_available"   string="المتاح على الرف"/>
+                <field name="qty_reserved"    string="المحجوز"/>
+                <field name="qty_net"         string="المتاح للحجز"/>
+                <field name="expiry_date"     string="انتهاء الصلاحية" widget="date"/>
+                <field name="is_low_stock"    column_invisible="1"/>
+                <field name="active"          column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dawai_inventory_form" model="ir.ui.view">
+        <field name="name">dawai.inventory.form</field>
+        <field name="model">dawai.inventory</field>
+        <field name="arch" type="xml">
+            <form string="سجل المخزون">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="بيانات الربط">
+                            <field name="pharm_id"    string="الصيدلية"/>
+                            <field name="med_id"      string="الدواء"/>
+                            <field name="supplier_id" string="المورد"/>
+                            <field name="batch_no"    string="رقم الدفعة"/>
+                        </group>
+                        <group string="الكميات">
+                            <field name="qty_available"   string="المتاح على الرف"/>
+                            <field name="qty_reserved"    string="المحجوز"/>
+                            <field name="qty_net"         string="المتاح للحجز" readonly="1"/>
+                            <field name="min_stock_level" string="حد التنبيه"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="تواريخ">
+                            <field name="expiry_date" string="تاريخ انتهاء الصلاحية"/>
+                            <field name="last_update" string="آخر تحديث" readonly="1"/>
+                        </group>
+                        <group string="الحالة">
+                            <field name="active"       string="سجل نشط"/>
+                            <field name="is_low_stock" string="مخزون منخفض؟" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dawai_inventory_search" model="ir.ui.view">
+        <field name="name">dawai.inventory.search</field>
+        <field name="model">dawai.inventory</field>
+        <field name="arch" type="xml">
+            <search string="بحث في المخزون">
+                <field name="pharm_id"    string="الصيدلية"/>
+                <field name="med_id"      string="الدواء"/>
+                <field name="supplier_id" string="المورد"/>
+                <field name="batch_no"    string="رقم الدفعة"/>
+                <separator/>
+                <filter name="low_stock"    string="مخزون منخفض"
+                        domain="[('is_low_stock','=',True)]"/>
+                <filter name="out_of_stock" string="نفد المخزون"
+                        domain="[('qty_net','=',0)]"/>
+                <filter name="has_stock"    string="متوفر"
+                        domain="[('qty_net','&gt;',0)]"/>
+                <separator/>
+                <filter name="archived" string="مؤرشف"
+                        domain="[('active','=',False)]"/>
+                <group expand="0" string="تجميع حسب">
+                    <filter name="group_pharmacy" string="الصيدلية"
+                            context="{'group_by':'pharm_id'}"/>
+                    <filter name="group_medicine" string="الدواء"
+                            context="{'group_by':'med_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dawai_inventory" model="ir.actions.act_window">
+        <field name="name">المخزون</field>
+        <field name="res_model">dawai.inventory</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dawai_inventory_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                لا يوجد مخزون بعد — سجّل شحنة توريد أولاً
+            </p>
+        </field>
+    </record>
+
+</odoo>

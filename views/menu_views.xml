@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- القائمة الجذر -->
+    <menuitem id="menu_dawai_root"
+              name="منصة دوائي"
+              sequence="10"/>
+
+    <!-- ─── 1. البيانات الأساسية ─── -->
+    <menuitem id="menu_dawai_master"
+              name="البيانات الأساسية"
+              parent="menu_dawai_root"
+              sequence="10"
+              groups="dawai_platform.group_dawai_admin"/>
+
+    <menuitem id="menu_dawai_medicine"
+              name="الأدوية"
+              parent="menu_dawai_master"
+              action="action_dawai_medicine"
+              sequence="10"/>
+
+    <menuitem id="menu_dawai_supplier"
+              name="الموردون"
+              parent="menu_dawai_master"
+              action="action_dawai_supplier"
+              sequence="20"/>
+
+    <menuitem id="menu_dawai_pharmacy"
+              name="الصيدليات"
+              parent="menu_dawai_master"
+              action="action_dawai_pharmacy"
+              sequence="30"/>
+
+    <menuitem id="menu_dawai_patient"
+              name="المرضى"
+              parent="menu_dawai_master"
+              action="action_dawai_patient"
+              sequence="40"/>
+
+    <!-- ─── 2. إدارة المخزون ─── -->
+    <menuitem id="menu_dawai_inventory_root"
+              name="إدارة المخزون"
+              parent="menu_dawai_root"
+              sequence="20"
+              groups="dawai_platform.group_dawai_pharmacist"/>
+
+    <menuitem id="menu_dawai_stock_inbound"
+              name="استلام شحنات التوريد"
+              parent="menu_dawai_inventory_root"
+              action="action_dawai_stock_inbound"
+              sequence="10"/>
+
+    <menuitem id="menu_dawai_inventory"
+              name="المخزون الحالي"
+              parent="menu_dawai_inventory_root"
+              action="action_dawai_inventory"
+              sequence="20"/>
+
+    <!-- ─── 3. الحجوزات والصرف ─── -->
+    <menuitem id="menu_dawai_booking_root"
+              name="الحجوزات والصرف"
+              parent="menu_dawai_root"
+              sequence="30"
+              groups="dawai_platform.group_dawai_pharmacist"/>
+
+    <menuitem id="menu_dawai_booking"
+              name="الحجوزات"
+              parent="menu_dawai_booking_root"
+              action="action_dawai_booking"
+              sequence="10"/>
+
+    <menuitem id="menu_dawai_prescription"
+              name="الوصفات الطبية"
+              parent="menu_dawai_booking_root"
+              action="action_dawai_prescription"
+              sequence="20"/>
+
+    <menuitem id="menu_dawai_dispensing"
+              name="عمليات الصرف"
+              parent="menu_dawai_booking_root"
+              action="action_dawai_dispensing"
+              sequence="30"/>
+
+    <!-- ─── 4. التقارير ─── -->
+    <menuitem id="menu_dawai_reports_root"
+              name="التقارير"
+              parent="menu_dawai_root"
+              sequence="40"
+              groups="dawai_platform.group_dawai_admin"/>
+
+    <menuitem id="menu_dawai_report_dispensing"
+              name="تقرير عمليات الصرف"
+              parent="menu_dawai_reports_root"
+              action="action_dawai_dispensing"
+              sequence="10"/>
+
+    <menuitem id="menu_dawai_report_inventory"
+              name="تقرير المخزون"
+              parent="menu_dawai_reports_root"
+              action="action_dawai_inventory"
+              sequence="20"/>
+
+    <menuitem id="menu_dawai_report_bookings"
+              name="تقرير الحجوزات"
+              parent="menu_dawai_reports_root"
+              action="action_dawai_booking"
+              sequence="30"/>
+
+</odoo>

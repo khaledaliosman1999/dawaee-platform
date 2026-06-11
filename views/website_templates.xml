@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="patient_medicines_template" name="Medicines Page">
+        <t t-call="website.layout">
+            <div id="wrap" class="container mt-4 mb-5" style="direction: rtl; text-align: right;">
+                <h2 class="text-center mb-4 text-primary font-weight-bold">البحث عن الأدوية - منصة دوائي</h2>
+
+                <form action="/medicines" method="get" class="mb-5 d-flex justify-content-center">
+                    <div class="input-group w-50">
+                        <input type="text" name="search" class="form-control text-right"
+                               placeholder="ادخل اسم الدواء التجاري أو العلمي..." t-att-value="search"/>
+                        <button class="btn btn-primary" type="submit">بحث</button>
+                    </div>
+                </form>
+
+                <div class="row">
+                    <t t-if="not medicines">
+                        <div class="col-12 text-center">
+                            <p class="alert alert-warning">عذراً، لم يتم العثور على أدوية مطابقة لبحثك.</p>
+                        </div>
+                    </t>
+
+                    <t t-foreach="medicines" t-as="medicine">
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0 position-relative">
+                                <t t-if="medicine.requires_prescription">
+                                    <span class="badge bg-danger position-absolute" style="top: 10px; right: 10px;">
+                                        روشتة إلزامية
+                                    </span>
+                                </t>
+                                <div class="card-body d-flex flex-column mt-2">
+                                    <h4 class="card-title text-primary font-weight-bold mb-1">
+                                        <t t-esc="medicine.med_name"/>
+                                    </h4>
+                                    <h6 class="text-muted italic mb-3">
+                                        <t t-esc="medicine.scientific_name"/>
+                                    </h6>
+                                    <div class="mb-3 small text-muted">
+                                        متوفر في:
+                                        <span class="text-dark font-weight-bold">
+                                            <t t-esc="medicine.inventory_count"/>
+                                            صيدليات
+                                        </span>
+                                    </div>
+                                    <a t-attf-href="/medicines/#{medicine.id}"
+                                       class="btn btn-primary mt-auto rounded-pill text-center">عرض الصيدليات والأسعار
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="medicine_details_template" name="Medicine Details">
+        <t t-call="website.layout">
+            <div id="wrap" class="container mt-5 mb-5" style="direction: rtl; text-align: right;">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-light p-3 rounded">
+                        <li class="breadcrumb-item">
+                            <a href="/medicines">قائمة الأدوية</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <t t-esc="medicine.med_name"/>
+                        </li>
+                    </ol>
+                </nav>
+
+                <div class="bg-white p-4 rounded shadow-sm mt-4">
+                    <h1 class="text-primary font-weight-bold mb-1">
+                        <t t-esc="medicine.med_name"/>
+                    </h1>
+                    <h5 class="text-muted mb-4">
+                        <t t-esc="medicine.scientific_name"/>
+                    </h5>
+                    <hr/>
+
+                    <h3 class="text-secondary mt-4 mb-3 font-weight-bold">الصيدليات التي يتوفر بها الدواء حالياً:</h3>
+
+                    <t t-if="not inventories">
+                        <p class="alert alert-danger">نأسف جداً، هذا الدواء غير متوفر حالياً في أي صيدلية مسجلة
+                            بالنظام.
+                        </p>
+                    </t>
+
+                    <t t-else="">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-hover border text-right">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>اسم الصيدلية</th>
+                                        <th>العنوان</th>
+                                        <th>السعر الحالي</th>
+                                        <th>الكمية المتاحة</th>
+                                        <th>الموقع الجغرافي</th>
+                                        <th>إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="inventories" t-as="inv">
+                                        <tr>
+                                            <td class="align-middle font-weight-bold text-dark">
+                                                <t t-esc="inv.pharm_id.pharm_name"/>
+                                            </td>
+                                            <td class="align-middle text-muted">
+                                                <t t-esc="inv.pharm_id.address"/>
+                                            </td>
+                                            <td class="align-middle text-success font-weight-bold">
+                                                <t t-esc="inv.unit_price"/>
+                                                SDG
+                                            </td>
+                                            <td class="align-middle">
+                                                <t t-esc="inv.qty_net"/>
+                                                وحدة
+                                            </td>
+                                            <td class="align-middle">
+                                                <a t-att-href="inv.pharm_id.map_url" target="_blank"
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fa fa-map-marker text-danger"></i>
+                                                    الخريطة
+                                                </a>
+                                            </td>
+                                            <td class="align-middle">
+                                                <a t-attf-href="/medicines/book/#{inv.id}"
+                                                   class="btn btn-sm btn-success px-3 rounded-pill">
+                                                    حجز الدواء
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                    <div class="mt-4">
+                        <a href="/medicines" class="btn btn-secondary px-4">العودة للبحث</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_confirmation_template" name="Booking Confirmation">
+        <t t-call="website.layout">
+            <div id="wrap" class="container mt-5 mb-5" style="direction: rtl; text-align: right;">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 bg-white p-5 rounded shadow-sm border-top border-primary border-5">
+                        <h2 class="text-primary font-weight-bold mb-4">
+                            <i class="fa fa-info-circle"></i>
+                            مراجعة وتأكيد طلب الحجز
+                        </h2>
+
+                        <t t-if="error_msg">
+                            <div class="alert alert-danger font-weight-bold mb-4 shadow-sm">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                <t t-esc="error_msg"/>
+                            </div>
+                        </t>
+
+                        <p class="text-muted mb-4">مرحباً بك
+                            <strong>
+                                <t t-esc="current_user.name"/>
+                            </strong>
+                            ، يرجى مراجعة وتحديد كمية الحجز أدناه:
+                        </p>
+
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title font-weight-bold text-primary mb-3">تفاصيل الدواء والموقع</h5>
+                                <p class="mb-2">
+                                    <strong>الدواء المطلوب:</strong>
+                                    <t t-esc="inventory.med_id.med_name"/>
+                                    (<t t-esc="inventory.med_id.scientific_name"/>)
+                                </p>
+                                <p class="mb-2">
+                                    <strong>الصيدلية الموفرة:</strong>
+                                    <t t-esc="inventory.pharm_id.pharm_name"/>
+                                </p>
+                                <p class="mb-2">
+                                    <strong>العنوان بالتفصيل:</strong>
+                                    <t t-esc="inventory.pharm_id.address"/>
+                                </p>
+                                <p class="mb-2">
+                                    <strong>السعر بالصيدلية:</strong>
+                                    <span class="text-success font-weight-bold">
+                                        <t t-esc="inventory.unit_price"/>
+                                        SDG
+                                    </span>
+                                </p>
+                                <p class="mb-0">
+                                    <strong>الحد الأقصى المتاح للحجز:</strong>
+                                    <span class="text-info font-weight-bold">
+                                        <t t-esc="inventory.qty_net"/>
+                                        وحدة
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <form method="POST">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                            <div class="form-group mb-4 w-50">
+                                <label for="qty_booked" class="font-weight-bold mb-2">حدد الكمية المراد حجزها:</label>
+                                <input type="number" name="qty_booked" id="qty_booked" class="form-control text-right"
+                                       value="1" min="1" t-att-max="inventory.qty_net" required="required"/>
+                            </div>
+
+                            <div class="d-flex mt-4">
+                                <button type="submit" class="btn btn-success px-5 font-weight-bold ml-2">تأكيد الحجز
+                                    النهائي
+                                </button>
+                                <a t-attf-href="/medicines/#{inventory.med_id.id}"
+                                   class="btn btn-outline-secondary px-4">إلغاء والعودة
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_success_template" name="Booking Success">
+        <t t-call="website.layout">
+            <div id="wrap" class="container mt-5 mb-5" style="direction: rtl; text-align: right;">
+                <div class="row justify-content-center">
+                    <div class="col-md-7 bg-white p-5 rounded shadow mb-4 border-top border-success border-5 text-center">
+                        <div class="text-success display-3 mb-3">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <h2 class="text-success font-weight-bold mb-2">تم تأكيد حجز الدواء بنجاح!</h2>
+                        <p class="text-muted mb-4">تم حجز حصتك الطبية في المخزن وتأمينها مؤقتاً لصالحك.</p>
+
+                        <div class="card border-dashed p-4 bg-light text-right mx-auto"
+                             style="max-width: 500px; border: 2px dashed #28a745; border-radius: 10px;">
+                            <h4 class="text-center text-primary font-weight-bold mb-3">بطاقة الحجز الرقمية</h4>
+                            <p class="mb-2 fs-5 text-center">رمز الحجز (Booking Code):
+                                <br/>
+                                <strong class="text-dark bg-white p-1 border rounded px-3 font-monospace d-inline-block mt-1 fs-4">
+                                    <t t-esc="booking.booking_code"/>
+                                </strong>
+                            </p>
+                            <p class="mb-3 fs-6 text-center text-muted">رمز التحقق المزدوج:
+                                <t t-esc="booking.verification_code"/>
+                            </p>
+                            <hr/>
+                            <p class="mb-2">
+                                <strong>اسم الدواء:</strong>
+                                <t t-esc="booking.med_id.med_name"/>
+                            </p>
+                            <p class="mb-2">
+                                <strong>الصيدلية:</strong>
+                                <t t-esc="booking.pharm_id.pharm_name"/>
+                            </p>
+                            <p class="mb-2">
+                                <strong>الكمية المحجوزة:</strong>
+                                <t t-esc="booking.qty_booked"/>
+                                وحدة
+                            </p>
+                            <p class="mb-2">
+                                <strong>الإجمالي المطلوب:</strong>
+                                <span class="text-success font-weight-bold">
+                                    <t t-esc="booking.total_price"/>
+                                    SDG
+                                </span>
+                            </p>
+                            <p class="mb-0 text-danger font-weight-bold mt-2 text-center small">
+                                <i class="fa fa-clock-o"></i>
+                                تنتهي الصلاحية في:
+                                <br/>
+                                <span t-field="booking.pickup_deadline" t-options="{'widget': 'datetime'}"/>
+                            </p>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="/medicines" class="btn btn-primary px-5 rounded-pill">العودة للبحث</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

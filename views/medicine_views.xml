@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_dawai_medicine_list" model="ir.ui.view">
+        <field name="name">dawai.medicine.list</field>
+        <field name="model">dawai.medicine</field>
+        <field name="arch" type="xml">
+            <list string="قائمة الأدوية" decoration-muted="active == False">
+                <field name="med_name"              string="الاسم التجاري"/>
+                <field name="scientific_name"        string="الاسم العلمي"/>
+                <field name="med_category"           string="التصنيف" widget="badge"/>
+                <field name="med_price"              string="السعر (SDG)"/>
+                <field name="requires_prescription"  string="يحتاج وصفة؟" widget="boolean_toggle"/>
+                <field name="total_qty_available"    string="الكمية المتاحة"/>
+                <field name="inventory_count"        string="عدد الصيدليات"/>
+                <field name="active"                 column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dawai_medicine_form" model="ir.ui.view">
+        <field name="name">dawai.medicine.form</field>
+        <field name="model">dawai.medicine</field>
+        <field name="arch" type="xml">
+            <form string="بيانات الدواء">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_inventory" type="object"
+                                class="oe_stat_button" icon="fa-cubes">
+                            <field name="inventory_count" string="صيدليات" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_inventory" type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="total_qty_available" string="الكمية المتاحة" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="med_name" placeholder="الاسم التجاري..."/></h1>
+                        <h3><field name="scientific_name" placeholder="الاسم العلمي..."/></h3>
+                    </div>
+                    <group>
+                        <group string="التصنيف">
+                            <field name="med_category"          string="تصنيف الدواء"/>
+                            <field name="requires_prescription" string="يحتاج وصفة طبية؟"/>
+                        </group>
+                        <group string="السعر والحالة">
+                            <field name="med_price" string="سعر الدواء (SDG)"/>
+                            <field name="active"    string="نشط"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dawai_medicine_search" model="ir.ui.view">
+        <field name="name">dawai.medicine.search</field>
+        <field name="model">dawai.medicine</field>
+        <field name="arch" type="xml">
+            <search string="بحث في الأدوية">
+                <field name="med_name"        string="الاسم التجاري"/>
+                <field name="scientific_name" string="الاسم العلمي"/>
+                <separator/>
+                <filter name="requires_presc" string="يحتاج وصفة"
+                        domain="[('requires_prescription','=',True)]"/>
+                <filter name="no_presc" string="بدون وصفة"
+                        domain="[('requires_prescription','=',False)]"/>
+                <separator/>
+                <filter name="cat_diabetes" string="سكري"
+                        domain="[('med_category','=','diabetes')]"/>
+                <filter name="cat_pressure" string="ضغط دم"
+                        domain="[('med_category','=','pressure')]"/>
+                <filter name="cat_heart"    string="قلب"
+                        domain="[('med_category','=','heart')]"/>
+                <filter name="cat_asthma"   string="ربو"
+                        domain="[('med_category','=','asthma')]"/>
+                <filter name="cat_rare"     string="نادر"
+                        domain="[('med_category','=','rare')]"/>
+                <separator/>
+                <filter name="archived" string="مؤرشف"
+                        domain="[('active','=',False)]"/>
+                <group expand="0" string="تجميع حسب">
+                    <filter name="group_category" string="التصنيف"
+                            context="{'group_by':'med_category'}"/>
+                    <filter name="group_presc" string="يحتاج وصفة"
+                            context="{'group_by':'requires_prescription'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dawai_medicine" model="ir.actions.act_window">
+        <field name="name">الأدوية</field>
+        <field name="res_model">dawai.medicine</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_dawai_medicine_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">أضف أول دواء في النظام</p>
+        </field>
+    </record>
+
+</odoo>
