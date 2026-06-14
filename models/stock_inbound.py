@@ -116,25 +116,23 @@ class DawaiStockInbound(models.Model):
                 ('batch_no', '=', rec.batch_no),
             ], limit=1)
 
-            vals = {
-                'qty_available': (inventory.qty_available + rec.qty_in
-                                  if inventory else rec.qty_in),
-                'supplier_id': rec.supplier_id.id,
-                'last_update': fields.Datetime.now(),
-                'unit_price': rec.unit_price,  # ← السعر من الشحنة
-            }
-
             if inventory:
-                inventory.write(vals)
+                inventory.write({
+                    'qty_available': inventory.qty_available + rec.qty_in,
+                    'supplier_id': rec.supplier_id.id,
+                    'unit_price': rec.unit_price,  # ← تحديث السعر
+                    'last_update': fields.Datetime.now(),
+                })
             else:
                 self.env['dawai.inventory'].create({
                     'pharm_id': rec.pharm_id.id,
                     'med_id': rec.med_id.id,
                     'supplier_id': rec.supplier_id.id,
                     'batch_no': rec.batch_no,
+                    'qty_available': rec.qty_in,
                     'qty_reserved': 0,
-                    'unit_price': rec.unit_price,
-                    **vals,
+                    'unit_price': rec.unit_price,  # ← السعر الجديد
+                    'last_update': fields.Datetime.now(),
                 })
             rec.state = 'done'
 

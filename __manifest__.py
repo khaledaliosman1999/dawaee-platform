@@ -6,7 +6,7 @@
         نظام إدارة الأدوية للصيدليات في الخرطوم
         جامعة السودان للعلوم والتكنولوجيا — قسم نظم المعلومات الإدارية 2026
     """,
-    'author': 'Sudan University of Science and Technology - MIS Dept.',
+    'author': 'Khaled Aili Osman Sudan University of Science and Technology - MIS Dept.',
     'category': 'Healthcare',
     'depends': ['base', 'website', 'mail'],
     'data': [

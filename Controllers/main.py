@@ -3,98 +3,147 @@ from odoo import http
 from odoo.http import request
 from odoo.exceptions import ValidationError
 
+class DawaiPortal(http.Controller):
 
-class DawaiWebsite(http.Controller):
+    @http.route('/dawai', auth='public', type='http', website=True)
+    def home(self, **kwargs):
+        return request.redirect('/dawai/search')
 
-    # 1. قائمة الأدوية العامة
-    @http.route('/medicines', type='http', auth='public', website=True)
-    def medicines_page(self, search='', **kwargs):
-        domain = [('active', '=', True)]
-        if search:
-            domain += ['|', ('med_name', 'ilike', search), ('scientific_name', 'ilike', search)]
-        medicines = request.env['dawai.medicine'].sudo().search(domain)
-        return request.render('dawai_platform.patient_medicines_template', {
-            'medicines': medicines,
-            'search': search,
+    @http.route('/dawai/search', auth='public', type='http', website=True, methods=['GET'])
+    def search_medicine(self, query='', **kwargs):
+        inventories = request.env['dawai.inventory'].sudo()
+        domain = [('qty_net', '>', 0), ('active', '=', True)]
+
+        if query:
+            domain += ['|', ('med_id.med_name', 'ilike', query), ('med_id.scientific_name', 'ilike', query)]
+
+        results = inventories.search(domain, order='unit_price asc')
+
+        medicines_map = {}
+        for inv in results:
+            med_id = inv.med_id.id
+            if med_id not in medicines_map:
+                medicines_map[med_id] = {
+                    'medicine': inv.med_id,
+                    'pharmacies': [],
+                }
+            medicines_map[med_id]['pharmacies'].append(inv)
+
+        return request.render('dawaee_platform.portal_search_page', {
+            'query':        query,
+            'results_map':  medicines_map,
+            'total_count':  len(results),
         })
 
-    # 2. تفاصيل الدواء وعرض الصيدليات
-    @http.route('/medicines/<int:medicine_id>', type='http', auth='public', website=True)
-    def medicine_details(self, medicine_id, **kwargs):
-        medicine = request.env['dawai.medicine'].sudo().browse(medicine_id)
-        if not medicine.exists() or not medicine.active:
-            return request.not_found()
-        inventories = request.env['dawai.inventory'].sudo().search([
-            ('med_id', '=', medicine.id),
+    @http.route('/dawai/medicine/<int:stock_id>', auth='public', type='http', website=True)
+    def medicine_detail(self, stock_id, **kwargs):
+        stock = request.env['dawai.inventory'].sudo().browse(stock_id)
+        if not stock.exists() or not stock.active:
+            return request.redirect('/dawai/search')
+
+        other_pharmacies = request.env['dawai.inventory'].sudo().search([
+            ('med_id', '=', stock.med_id.id),
             ('qty_net', '>', 0),
-            ('active', '=', True)
-        ])
-        return request.render('dawai_platform.medicine_details_template', {
-            'medicine': medicine,
-            'inventories': inventories
+            ('active', '=', True),
+            ('id', '!=', stock_id),
+        ], order='unit_price asc')
+
+        return request.render('dawaee_platform.portal_medicine_detail', {
+            'stock':            stock,
+            'other_pharmacies': other_pharmacies,
         })
 
-    # 3. مسار الحجز المطور (يستقبل GET لعرض الصفحة و POST لحفظ البيانات في الجدول 7)
-    @http.route('/medicines/book/<int:inventory_id>', type='http', auth='user', methods=['GET', 'POST'], website=True)
-    def book_medicine_action(self, inventory_id, **kwargs):
-        inventory = request.env['dawai.inventory'].sudo().browse(inventory_id)
-        if not inventory.exists() or not inventory.active:
-            return request.not_found()
+    @http.route('/dawai/book/<int:stock_id>', auth='user', type='http', website=True, methods=['GET'])
+    def booking_form(self, stock_id, **kwargs):
+        stock = request.env['dawai.inventory'].sudo().browse(stock_id)
+        if not stock.exists() or stock.qty_net <= 0:
+            return request.redirect('/dawai/search')
 
-        current_user = request.env.user
+        patient = request.env['dawai.patient'].sudo().search([('user_id', '=', request.env.user.id)], limit=1)
 
-        # البحث عن سجل المريض المرتبط بحساب المستخدم الحالي في نظام Odoo
-        # (يفترض أن نموذج dawai.patient يحتوي على حقل user_id يربطه بحساب المستخدم)
-        patient = request.env['dawai.patient'].sudo().search([('user_id', '=', current_user.id)], limit=1)
-
-        # إجراء حمائي: إذا لم يكن للمستخدم الحالي سجل في جدول المرضى بعد، ننشئه له تلقائياً
         if not patient:
             patient = request.env['dawai.patient'].sudo().create({
-                'pat_name': current_user.name,
-                'user_id': current_user.id,
+                'pat_name': request.env.user.name,
+                'email':    request.env.user.email or '',
+                'user_id':  request.env.user.id,
             })
 
-        error_msg = False
+        existing_booking = request.env['dawai.medicine.booking'].sudo().search([
+            ('pat_id',  '=', patient.id),
+            ('med_id',  '=', stock.med_id.id),
+            ('status',  '=', 'active'),
+        ], limit=1)
 
-        # معالجة الضغط على زر "تأكيد الحجز النهائي" (POST)
-        if request.httprequest.method == 'POST':
-            qty_booked = int(kwargs.get('qty_booked', 1))
-            try:
-                # إنشاء السجل في جدول حجز الأدوية (جدول 7)
-                booking = request.env['dawai.medicine.booking'].sudo().create({
-                    'pat_id': patient.id,
-                    'stock_id': inventory.id,
-                    'qty_booked': qty_booked,
-                })
-                # عند النجاح الكامل، يتم توجيه المريض مباشرة إلى صفحة النجاح وعرض الكود له
-                return request.render('dawai_platform.booking_success_template', {
-                    'booking': booking
-                })
-            except ValidationError as e:
-                # في حال كسر أحد الشروط (مثال: حجز نشط مسبقاً)، نلتقط الخطأ ونعرضه للمريض بوضوح في الواجهة
-                error_msg = str(e)
-
-        return request.render('dawai_platform.booking_confirmation_template', {
-            'inventory': inventory,
-            'current_user': current_user,
-            'error_msg': error_msg
+        return request.render('dawaee_platform.portal_booking_form', {
+            'stock':            stock,
+            'patient':          patient,
+            'existing_booking': existing_booking,
         })
 
-    # 4. بوابة المريض - شاشة (حجوزاتي الطبية)
-    @http.route('/my/bookings', type='http', auth='user', website=True)
-    def patient_my_bookings(self, **kwargs):
-        current_user = request.env.user
+    @http.route('/dawai/book/confirm', auth='user', type='http', website=True, methods=['POST'])
+    def booking_confirm(self, stock_id, qty=1, **kwargs):
+        try:
+            stock_id = int(stock_id)
+            qty = int(qty)
+        except (ValueError, TypeError):
+            return request.redirect('/dawai/search')
 
-        # البحث عن المريض المرتبط بالحساب الحالي
-        patient = request.env['dawai.patient'].sudo().search([('user_id', '=', current_user.id)], limit=1)
+        stock = request.env['dawai.inventory'].sudo().browse(stock_id)
+        if not stock.exists() or stock.qty_net < qty:
+            return request.render('dawaee_platform.portal_booking_result', {
+                'success': False,
+                'error':   'الكمية المطلوبة غير متوفرة في المخزون',
+                'stock':   stock,
+            })
 
-        # جلب الحجوزات وترتيبها من الأحدث للأقدم
-        bookings = request.env['dawai.medicine.booking']
-        if patient:
-            bookings = request.env['dawai.medicine.booking'].sudo().search([
-                ('pat_id', '=', patient.id)
-            ], order='booking_date desc')
+        patient = request.env['dawai.patient'].sudo().search([('user_id', '=', request.env.user.id)], limit=1)
 
-        return request.render('dawai_platform.patient_my_bookings_template', {
+        if not patient:
+            return request.redirect('/dawai/search')
+
+        try:
+            booking = request.env['dawai.medicine.booking'].sudo().create({
+                'pat_id':    patient.id,
+                'stock_id':  stock_id,
+                'qty_booked': qty,
+            })
+            return request.render('dawaee_platform.portal_booking_result', {
+                'success':      True,
+                'booking':      booking,
+                'stock':        stock,
+            })
+        except ValidationError as e:
+            return request.render('dawaee_platform.portal_booking_result', {
+                'success': False,
+                'error':   str(e),
+                'stock':   stock,
+            })
+
+    @http.route('/dawai/my-bookings', auth='user', type='http', website=True)
+    def my_bookings(self, **kwargs):
+        patient = request.env['dawai.patient'].sudo().search([('user_id', '=', request.env.user.id)], limit=1)
+
+        if not patient:
+            return request.redirect('/dawai/search')
+
+        bookings = request.env['dawai.medicine.booking'].sudo().search([
+            ('pat_id', '=', patient.id),
+        ], order='booking_date desc')
+
+        return request.render('dawaee_platform.portal_my_bookings', {
+            'patient':  patient,
             'bookings': bookings,
         })
+
+    @http.route('/dawai/booking/cancel/<int:booking_id>', auth='user', type='http', website=True, methods=['POST'])
+    def cancel_booking(self, booking_id, **kwargs):
+        patient = request.env['dawai.patient'].sudo().search([('user_id', '=', request.env.user.id)], limit=1)
+        booking = request.env['dawai.medicine.booking'].sudo().browse(booking_id)
+
+        if (booking.exists() and patient and booking.pat_id.id == patient.id and booking.status == 'active'):
+            try:
+                booking.action_cancel()
+            except ValidationError:
+                pass
+
+        return request.redirect('/dawai/my-bookings')
