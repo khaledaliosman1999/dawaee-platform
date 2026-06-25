@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ============================================================
 # جدول 3: الصيدليات (Pharmacies Table)
 # يمثل كينونة الجهة الموفرة للخدمة
@@ -17,7 +16,7 @@ class DawaiPharmacy(models.Model):
     # ─── الحقول الأساسية ─────────────────────────────────
     pharm_name = fields.Char(
         string='اسم الصيدلية',
-        size=50,  # تعديل: 20 → 50 (الاسم قد يكون طويلاً مثل "صيدلية الشفاء المركزية")
+        size=50,
         required=True,
         tracking=True,
     )
@@ -44,7 +43,7 @@ class DawaiPharmacy(models.Model):
         string='العنوان',
         required=True,
     )
-    # تعديل: url → map_url (التسمية تعكس المحتوى بدقة أكبر)
+
     map_url = fields.Char(
         string='رابط الخريطة (Google Maps)',
         size=200,

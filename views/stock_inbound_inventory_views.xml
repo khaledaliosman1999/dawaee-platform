@@ -54,6 +54,8 @@
                                    readonly="state == 'done'"/>
                             <field name="med_id"      string="الدواء"
                                    readonly="state == 'done'"/>
+                            <field name="unit_price" string="سعر البيع بالصيدلية (SDG)"
+                                   readonly="state == 'done'"/>
                         </group>
                         <group string="بيانات الكمية">
                             <field name="qty_in"   string="الكمية الواردة"
@@ -122,6 +124,7 @@
                 <field name="med_id"          string="الدواء"/>
                 <field name="batch_no"        string="الدفعة"/>
                 <field name="supplier_id"     string="المورد"/>
+                <field name="unit_price" string="السعر (SDG)"/>
                 <field name="qty_available"   string="المتاح على الرف"/>
                 <field name="qty_reserved"    string="المحجوز"/>
                 <field name="qty_net"         string="المتاح للحجز"/>
@@ -145,12 +148,13 @@
                         <group string="بيانات الربط">
                             <field name="pharm_id"    string="الصيدلية"/>
                             <field name="med_id"      string="الدواء"/>
+                            <field name="unit_price" string="السعر (SDG)"/>
                             <field name="supplier_id" string="المورد"/>
                             <field name="batch_no"    string="رقم الدفعة"/>
                         </group>
                         <group string="الكميات">
-                            <field name="qty_available"   string="المتاح على الرف"/>
-                            <field name="qty_reserved"    string="المحجوز"/>
+                            <field name="qty_available" string="المتاح على الرف" readonly="1"/>
+                            <field name="qty_reserved" string="المحجوز" readonly="1"/>
                             <field name="qty_net"         string="المتاح للحجز" readonly="1"/>
                             <field name="min_stock_level" string="حد التنبيه"/>
                         </group>

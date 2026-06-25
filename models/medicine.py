@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ============================================================
 # جدول 1: الأدوية (Medicines Table)
 # يمثل كينونة الدواء وبياناته الأساسية
@@ -6,7 +5,6 @@
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-
 
 class DawaiMedicine(models.Model):
     _name = 'dawai.medicine'
@@ -48,7 +46,6 @@ class DawaiMedicine(models.Model):
     med_price = fields.Float(
         string='سعر الدواء (SDG)',
         digits=(10, 2),
-        required=True,
         tracking=True,
     )
     requires_prescription = fields.Boolean(

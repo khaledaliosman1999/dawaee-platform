@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ============================================================
 # جدول 6: المخزون (Inventory / Stock Table)
 # يربط الأدوية بالصيدليات ويحدد الكميات المتوفرة لحظياً
@@ -144,6 +143,12 @@ class DawaiInventory(models.Model):
                     f'الكمية المحجوزة ({rec.qty_reserved}) '
                     f'تتجاوز الكمية المتاحة ({rec.qty_available})!'
                 )
+
+    @api.constrains('unit_price')
+    def _check_price(self):
+        for rec in self:
+            if rec.unit_price < 0:
+                raise ValidationError('سعر الوحدة لا يمكن أن يكون سالباً!')
 
     # ─── القيد المركب ─────────────────────────────────────
     _sql_constraints = [

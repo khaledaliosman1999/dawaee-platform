@@ -1,138 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Layout -->
     <template id="portal_layout" name="Layout منصة دوائي">
         <t t-call="website.layout">
-
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&amp;display=swap');
-
-                body {
-                font-family: 'Tajawal', sans-serif !important;
-                background-color: #f4f9f7;
-                direction: rtl;
-                text-align: right;
-                }
-
-                /* القائمة العلوية */
-                .dawai-nav {
-                background: linear-gradient(90deg, #00875A 0%, #00b377 100%);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                border-radius: 0 0 25px 25px;
-                margin-bottom: 40px;
-                padding: 15px 0;
-                }
-                .dawai-nav .navbar-brand { color: white !important; font-weight: 800; font-size: 1.6rem; letter-spacing:
-                0.5px;}
-                .dawai-nav a.nav-link { color: rgba(255,255,255,0.9) !important; font-weight: 500; font-size: 1.1rem;
-                transition: 0.3s;}
+                body { font-family: 'Tajawal', sans-serif !important; background-color: #f4f9f7; direction: rtl; text-align: right; }
+                .dawai-nav { background: linear-gradient(90deg, #00875A 0%, #00b377 100%); box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 0 0 25px 25px; margin-bottom: 40px; padding: 15px 0; }
+                .dawai-nav .navbar-brand { color: white !important; font-weight: 800; font-size: 1.6rem; letter-spacing: 0.5px;}
+                .dawai-nav a.nav-link { color: rgba(255,255,255,0.9) !important; font-weight: 500; font-size: 1.1rem; transition: 0.3s;}
                 .dawai-nav a.nav-link:hover { color: white !important; transform: translateY(-2px);}
-
-                /* البطاقات (Cards) والتأثيرات التفاعلية */
-                .dawai-card {
-                border: none;
-                border-radius: 16px;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.03);
-                background: white;
-                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-                overflow: hidden;
-                }
-                .dawai-card:hover {
-                transform: translateY(-7px);
-                box-shadow: 0 15px 30px rgba(0, 135, 90, 0.12);
-                }
-
-                /* الأزرار الاحترافية */
-                .btn-dawai {
-                background-color: #00875A;
-                color: white !important;
-                border-radius: 50px;
-                padding: 10px 30px;
-                font-weight: 700;
-                border: 2px solid #00875A;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 10px rgba(0, 135, 90, 0.2);
-                }
-                .btn-dawai:hover {
-                background-color: transparent;
-                color: #00875A !important;
-                box-shadow: none;
-                }
-                .btn-dawai-outline {
-                background-color: transparent;
-                color: #00875A !important;
-                border-radius: 50px;
-                padding: 10px 30px;
-                font-weight: 700;
-                border: 2px solid #00875A;
-                transition: all 0.3s ease;
-                }
-                .btn-dawai-outline:hover {
-                background-color: #00875A;
-                color: white !important;
-                }
-
-                /* الشارات والأسعار */
-                .price-badge {
-                background: #e6f4ef;
-                color: #00875A;
-                padding: 8px 16px;
-                border-radius: 12px;
-                font-weight: 800;
-                font-size: 1.2rem;
-                }
+                .dawai-card { border: none; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.03); background: white; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
+                .dawai-card:hover { transform: translateY(-7px); box-shadow: 0 15px 30px rgba(0, 135, 90, 0.12); }
+                .btn-dawai { background-color: #00875A; color: white !important; border-radius: 50px; padding: 10px 30px; font-weight: 700; border: 2px solid #00875A; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0, 135, 90, 0.2); }
+                .btn-dawai:hover { background-color: transparent; color: #00875A !important; box-shadow: none; }
+                .btn-dawai-outline { background-color: transparent; color: #00875A !important; border-radius: 50px; padding: 10px 30px; font-weight: 700; border: 2px solid #00875A; transition: all 0.3s ease; }
+                .btn-dawai-outline:hover { background-color: #00875A; color: white !important; }
+                .price-badge { background: #e6f4ef; color: #00875A; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 1.2rem; }
                 .status-badge { padding: 6px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;}
             </style>
 
             <div id="wrapwrap" class="d-flex flex-column min-vh-100">
                 <nav class="navbar navbar-expand-lg dawai-nav sticky-top">
                     <div class="container d-flex justify-content-between align-items-center">
-                        <a class="navbar-brand" href="/dawai/search">
-                            <i class="fa fa-heartbeat text-warning me-2"></i>
-                            منصة دوائي
-                        </a>
+                        <a class="navbar-brand" href="/dawai/search"><i class="fa fa-heartbeat text-warning me-2"></i> منصة دوائي</a>
                         <div class="d-flex align-items-center gap-3">
                             <a href="/dawai/search" class="nav-link d-none d-md-block me-3">البحث عن الأدوية</a>
                             <t t-if="request.env.user._is_public()">
-                                <a href="/web/login?redirect=/dawai/my-bookings"
-                                   class="btn btn-light text-success fw-bold rounded-pill px-4 shadow-sm">تسجيل الدخول
-                                </a>
+                                <a href="/dawai/login" class="btn btn-light text-success fw-bold rounded-pill px-4 shadow-sm">تسجيل الدخول</a>
                             </t>
                             <t t-else="">
-                                <span class="text-white fw-bold me-3 d-none d-md-inline">
-                                    <i class="fa fa-user-circle-o"></i>
-                                    <t t-esc="request.env.user.name"/>
-                                </span>
-                                <a href="/dawai/my-bookings"
-                                   class="btn btn-warning fw-bold text-dark rounded-pill px-4 shadow-sm">حجوزاتي
-                                </a>
-                                <a href="/web/session/logout?redirect=/dawai/search" class="text-white ms-2 fs-5"
-                                   title="تسجيل الخروج">
-                                    <i class="fa fa-sign-out"></i>
-                                </a>
+                                <span class="text-white fw-bold me-3 d-none d-md-inline"><i class="fa fa-user-circle-o"></i> <t t-esc="request.env.user.name"/></span>
+                                <a href="/dawai/my-bookings" class="btn btn-warning fw-bold text-dark rounded-pill px-4 shadow-sm">حجوزاتي</a>
+                                <a href="/web/session/logout?redirect=/dawai/search" class="text-white ms-2 fs-5" title="تسجيل الخروج"><i class="fa fa-sign-out"></i></a>
                             </t>
                         </div>
                     </div>
                 </nav>
-
-                <main class="flex-grow-1">
-                    <t t-out="0"/>
-                </main>
-
+                <main class="flex-grow-1"><t t-out="0"/></main>
                 <footer class="mt-auto py-4 text-center" style="background-color: #e6f4ef; color: #2c3e50;">
                     <div class="container">
-                        <h6 class="fw-bold mb-2">
-                            <i class="fa fa-shield text-success"></i>
-                            منصة دوائي الموحدة
-                        </h6>
-                        <p class="mb-0 small text-muted">مشروع إدارة وتوفير الأدوية المزمنة والنادرة
-                             © 2026
-                        </p>
+                        <h6 class="fw-bold mb-2"><i class="fa fa-shield text-success"></i> منصة دوائي الموحدة</h6>
+                        <p class="mb-0 small text-muted">مشروع إدارة وتوفير الأدوية المزمنة والنادرة © 2026</p>
                     </div>
                 </footer>
             </div>
         </t>
     </template>
 
+    <!-- 1. صفحة البحث الرئيسية -->
     <template id="portal_search_page" name="البحث عن الأدوية">
         <t t-call="dawaee_platform.portal_layout">
             <div class="container mb-5">
@@ -140,17 +56,12 @@
                     <div class="col-md-8 text-center">
                         <h1 class="fw-bold" style="color: #00875A; font-size: 2.8rem;">ابحث عن دوائك بسهولة</h1>
                         <p class="text-muted fs-5 mb-4">قارن الأسعار، وتعرف على أماكن التوفر، واحجز دوائك بضغطة زر</p>
-
-                        <form method="GET" action="/dawai/search" class="position-relative shadow-sm"
-                              style="border-radius: 50px;">
+                        <form method="GET" action="/dawai/search" class="position-relative shadow-sm" style="border-radius: 50px;">
                             <input type="text" name="query" class="form-control form-control-lg border-0 bg-white"
                                    style="border-radius: 50px; padding: 18px 25px; padding-left: 130px; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05);"
-                                   placeholder="اكتب اسم الدواء التجاري أو العلمي..." t-att-value="query"
-                                   autofocus="1"/>
-                            <button type="submit" class="btn btn-warning fw-bold text-dark position-absolute"
-                                    style="border-radius: 40px; top: 8px; left: 10px; bottom: 8px; padding: 0 30px;">
-                                <i class="fa fa-search"></i>
-                                بحث
+                                   placeholder="اكتب اسم الدواء التجاري أو العلمي..." t-att-value="query" autofocus="1"/>
+                            <button type="submit" class="btn btn-warning fw-bold text-dark position-absolute" style="border-radius: 40px; top: 8px; left: 10px; bottom: 8px; padding: 0 30px;">
+                                <i class="fa fa-search"></i> بحث
                             </button>
                         </form>
                     </div>
@@ -158,73 +69,38 @@
 
                 <t t-if="query">
                     <h5 class="text-muted mb-4">
-                        <t t-if="total_count > 0">وجدنا لك
-                            <strong class="text-success" t-esc="total_count"/>
-                            نتيجة مطابقة لـ "<t t-esc="query"/>"
-                        </t>
-                        <t t-else="">لم نعثر على نتائج مطابقة لـ "<t t-esc="query"/>"
-                        </t>
+                        <t t-if="total_count > 0">وجدنا لك <strong class="text-success" t-esc="total_count"/> نتيجة مطابقة</t>
+                        <t t-else="">لم نعثر على نتائج مطابقة لـ "<t t-esc="query"/>"</t>
                     </h5>
                 </t>
 
                 <t t-if="results_map">
                     <t t-foreach="results_map.values()" t-as="med_group">
                         <div class="d-flex align-items-center mb-3 mt-5 border-bottom pb-2">
-                            <h3 class="fw-bold mb-0" style="color: #2c3e50;">
-                                <i class="fa fa-medkit text-success me-2"></i>
-                                <t t-esc="med_group['medicine'].med_name"/>
-                            </h3>
-                            <span class="text-muted ms-3 fs-5">(<t t-esc="med_group['medicine'].scientific_name"/>)
-                            </span>
+                            <h3 class="fw-bold mb-0" style="color: #2c3e50;"><i class="fa fa-medkit text-success me-2"></i> <t t-esc="med_group['medicine'].med_name"/></h3>
+                            <span class="text-muted ms-3 fs-5">(<t t-esc="med_group['medicine'].scientific_name"/>)</span>
                             <t t-if="med_group['medicine'].requires_prescription">
-                                <span class="badge bg-danger rounded-pill ms-auto py-2 px-3">
-                                    <i class="fa fa-file-text-o"></i>
-                                    وصفة إلزامية
-                                </span>
+                                <span class="badge bg-danger rounded-pill ms-auto py-2 px-3"><i class="fa fa-file-text-o"></i> وصفة إلزامية</span>
                             </t>
                         </div>
-
                         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
                             <t t-foreach="med_group['pharmacies']" t-as="inv">
                                 <div class="col">
                                     <div class="card dawai-card h-100">
                                         <div class="card-body p-4">
-                                            <h5 class="fw-bold mb-3 text-dark">
-                                                <i class="fa fa-h-square text-success opacity-75"></i>
-                                                <t t-esc="inv.pharm_id.pharm_name"/>
-                                            </h5>
-
+                                            <h5 class="fw-bold mb-3 text-dark"><i class="fa fa-h-square text-success opacity-75"></i> <t t-esc="inv.pharm_id.pharm_name"/></h5>
                                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                                <div class="price-badge">
-                                                    <t t-esc="'%.2f' % inv.unit_price"/>
-                                                    SDG
-                                                </div>
-                                                <div class="text-info fw-bold bg-light px-3 py-2"
-                                                     style="border-radius: 10px;">
-                                                    <i class="fa fa-cube"></i>
-                                                    متاح:
-                                                    <t t-esc="inv.qty_net"/>
+                                                <div class="price-badge"><t t-esc="'%.2f' % inv.unit_price"/> SDG</div>
+                                                <div class="text-info fw-bold bg-light px-3 py-2" style="border-radius: 10px;">
+                                                    <i class="fa fa-cube"></i> متاح: <t t-esc="inv.qty_net"/>
                                                 </div>
                                             </div>
-
-                                            <p class="text-muted small mb-0">
-                                                <i class="fa fa-map-marker text-danger"></i>
-                                                <t t-esc="inv.pharm_id.address"/>
-                                            </p>
+                                            <p class="text-muted small mb-0"><i class="fa fa-map-marker text-danger"></i> <t t-esc="inv.pharm_id.address"/></p>
                                         </div>
                                         <div class="card-footer bg-transparent border-0 p-4 pt-0 d-flex gap-2">
-                                            <a t-attf-href="/dawai/book/#{inv.id}"
-                                               class="btn-dawai btn flex-grow-1 text-center">
-                                                التفاصيل والحجز
-                                            </a>
-
+                                            <a t-attf-href="/dawai/book/#{inv.id}" class="btn-dawai btn flex-grow-1 text-center">التفاصيل والحجز</a>
                                             <t t-if="inv.pharm_id.map_url">
-                                                <a t-att-href="inv.pharm_id.map_url" target="_blank"
-                                                   class="btn btn-light border text-danger shadow-sm d-flex align-items-center justify-content-center"
-                                                   style="border-radius: 50px; width: 45px; min-width: 45px; height: 45px; transition: 0.3s;"
-                                                   title="عرض موقع الصيدلية على الخريطة"
-                                                   onmouseover="this.style.backgroundColor='#ffebee'; this.style.borderColor='#ffcdd2';"
-                                                   onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.borderColor='#dee2e6';">
+                                                <a t-att-href="inv.pharm_id.map_url" target="_blank" class="btn btn-light border text-danger shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 50px; width: 45px; min-width: 45px; height: 45px; transition: 0.3s;" title="عرض موقع الصيدلية على الخريطة">
                                                     <i class="fa fa-map-marker fs-4"></i>
                                                 </a>
                                             </t>
@@ -235,123 +111,171 @@
                         </div>
                     </t>
                 </t>
-
-                <t t-elif="not query">
-                    <div class="text-center py-5 opacity-50">
-                        <i class="fa fa-search display-1 text-muted mb-3"></i>
-                        <h4>ابدأ بكتابة اسم الدواء في الأعلى</h4>
-                    </div>
-                </t>
             </div>
         </t>
     </template>
 
+    <!-- NEW: بوابة المصادقة (Auth Gate) -->
+    <template id="portal_auth_gate" name="تسجيل الدخول مطلوب">
+        <t t-call="dawaee_platform.portal_layout">
+            <div class="container py-5 text-center" style="max-width: 600px;">
+                <div class="card dawai-card p-5">
+                    <i class="fa fa-lock text-warning mb-4" style="font-size: 5rem;"></i>
+                    <h2 class="fw-bold mb-3" style="color: #00875A;">عذراً، يجب تسجيل الدخول</h2>
+                    <p class="text-muted fs-5 mb-5">لتتمكن من حجز دواء <strong><t t-esc="stock.med_id.med_name"/></strong>، يجب أن تقوم بتسجيل الدخول أو إنشاء حساب مريض جديد للحفاظ على سرية سجلاتك الطبية.</p>
+
+                    <div class="d-grid gap-3">
+                        <a t-attf-href="/dawai/login?next=#{next}" class="btn-dawai btn btn-lg">تسجيل الدخول</a>
+                        <a t-attf-href="/dawai/register?next=#{next}" class="btn btn-outline-secondary btn-lg rounded-pill fw-bold">إنشاء حساب جديد</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- NEW: صفحة تسجيل الدخول -->
+    <template id="portal_login_page" name="تسجيل الدخول">
+        <t t-call="dawaee_platform.portal_layout">
+            <div class="container py-5" style="max-width: 500px;">
+                <div class="card dawai-card p-4 p-md-5">
+                    <h3 class="fw-bold text-center mb-4" style="color: #00875A;">تسجيل الدخول</h3>
+
+                    <t t-if="errors.get('national_id')">
+                        <div class="alert alert-danger fw-bold rounded-pill text-center"><i class="fa fa-exclamation-triangle"></i> <t t-esc="errors['national_id']"/></div>
+                    </t>
+
+                    <form method="POST" action="/dawai/login">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="next" t-att-value="next"/>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">الرقم الوطني (11 رقم)</label>
+                            <input type="text" name="national_id" class="form-control form-control-lg bg-light" placeholder="أدخل الرقم الوطني..." required="1"/>
+                        </div>
+
+                        <button type="submit" class="btn-dawai btn btn-lg w-100 mb-3">دخول</button>
+                        <div class="text-center">
+                            <span class="text-muted">ليس لديك حساب؟</span>
+                            <a t-attf-href="/dawai/register?next=#{next}" class="fw-bold text-success">سجل الآن</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- NEW: صفحة إنشاء حساب -->
+    <template id="portal_register_page" name="إنشاء حساب مريض">
+        <t t-call="dawaee_platform.portal_layout">
+            <div class="container py-5" style="max-width: 700px;">
+                <div class="card dawai-card p-4 p-md-5 border-top border-5 border-warning">
+                    <h3 class="fw-bold text-center mb-4" style="color: #00875A;">إنشاء ملف طبي جديد</h3>
+
+                    <t t-if="errors.get('general')">
+                        <div class="alert alert-danger fw-bold"><t t-esc="errors['general']"/></div>
+                    </t>
+
+                    <form method="POST" action="/dawai/register">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="next" t-att-value="next"/>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">الرقم الوطني <span class="text-danger">*</span></label>
+                                <input type="text" name="national_id" t-att-value="values.get('national_id')" class="form-control" placeholder="11 رقم" required="1"/>
+                                <small t-if="errors.get('national_id')" class="text-danger fw-bold"><t t-esc="errors['national_id']"/></small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">الاسم الكامل <span class="text-danger">*</span></label>
+                                <input type="text" name="pat_name" t-att-value="values.get('pat_name')" class="form-control" placeholder="الاسم الرباعي" required="1"/>
+                                <small t-if="errors.get('pat_name')" class="text-danger fw-bold"><t t-esc="errors['pat_name']"/></small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">نوع المرض المزمن</label>
+                                <select name="disease_type" class="form-select">
+                                    <option value="">-- غير محدد --</option>
+                                    <t t-foreach="disease_types" t-as="dt">
+                                        <option t-att-value="dt[0]" t-att-selected="values.get('disease_type') == dt[0]"><t t-esc="dt[1]"/></option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">رقم الهاتف</label>
+                                <input type="text" name="contact_info" t-att-value="values.get('contact_info')" class="form-control" placeholder="مثال: 0912345678"/>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">البريد الإلكتروني (اختياري)</label>
+                                <input type="email" name="email" t-att-value="values.get('email')" class="form-control text-start" placeholder="email@example.com"/>
+                            </div>
+                        </div>
+
+                        <hr class="my-4"/>
+                        <button type="submit" class="btn-dawai btn btn-lg w-100 mb-3">إنشاء الحساب والمتابعة</button>
+                        <div class="text-center">
+                            <span class="text-muted">لديك حساب بالفعل؟</span>
+                            <a t-attf-href="/dawai/login?next=#{next}" class="fw-bold text-success">تسجيل الدخول</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 2. صفحة تأكيد الحجز -->
     <template id="portal_booking_form" name="تأكيد الحجز">
         <t t-call="dawaee_platform.portal_layout">
             <div class="container mb-5" style="max-width: 800px;">
                 <h3 class="fw-bold text-center mb-4" style="color: #00875A;">🛒 إتمام إجراءات الحجز</h3>
-
                 <t t-if="existing_booking">
-                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center p-4 mb-4"
-                         style="border-radius: 15px;">
+                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center p-4 mb-4" style="border-radius: 15px;">
                         <i class="fa fa-exclamation-triangle display-4 me-4 text-warning"></i>
                         <div>
                             <h5 class="fw-bold mb-1">لديك حجز نشط مسبقاً!</h5>
-                            <p class="mb-0">لا يمكنك حجز نفس الدواء مرتين. رمز الحجز الحالي:
-                                <strong>
-                                    <t t-esc="existing_booking.booking_code"/>
-                                </strong>
-                            </p>
+                            <p class="mb-0">رمز الحجز الحالي: <strong><t t-esc="existing_booking.booking_code"/></strong></p>
                         </div>
-                        <a href="/dawai/my-bookings" class="btn btn-warning fw-bold ms-auto rounded-pill">الذهاب
-                            لحجوزاتي
-                        </a>
+                        <a href="/dawai/my-bookings" class="btn btn-warning fw-bold ms-auto rounded-pill">الذهاب لحجوزاتي</a>
                     </div>
                 </t>
-
                 <div class="row g-4">
                     <div class="col-md-5">
                         <div class="card dawai-card h-100 p-4" style="background: #00875A; color: white;">
                             <h5 class="fw-bold opacity-75 mb-1">الدواء المطلوب</h5>
-                            <h3 class="fw-bold mb-0">
-                                <t t-esc="stock.med_id.med_name"/>
-                            </h3>
-                            <p class="opacity-75 mb-4">
-                                <t t-esc="stock.med_id.scientific_name"/>
-                            </p>
-
-                            <h5 class="fw-bold opacity-75 mb-1">الصيدلية</h5>
-                            <h4 class="fw-bold mb-4">
-                                <t t-esc="stock.pharm_id.pharm_name"/>
-                            </h4>
-
+                            <h3 class="fw-bold mb-0"><t t-esc="stock.med_id.med_name"/></h3>
+                            <h5 class="fw-bold opacity-75 mt-4 mb-1">الصيدلية</h5>
+                            <h4 class="fw-bold mb-4"><t t-esc="stock.pharm_id.pharm_name"/></h4>
                             <div class="mt-auto p-3 rounded" style="background: rgba(255,255,255,0.1);">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fs-5">السعر للوحدة:</span>
-                                    <span class="fs-3 fw-bold text-warning">
-                                        <t t-esc="'%.2f' % stock.unit_price"/>
-                                        SDG
-                                    </span>
+                                    <span class="fs-3 fw-bold text-warning"><t t-esc="'%.2f' % stock.unit_price"/> SDG</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div class="col-md-7">
                         <div class="card dawai-card h-100 p-4">
                             <form method="POST" action="/dawai/book/confirm">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                 <input type="hidden" name="stock_id" t-att-value="stock.id"/>
-
                                 <h5 class="fw-bold mb-4 border-bottom pb-2">تفاصيل المستلم</h5>
-
                                 <div class="mb-3">
                                     <label class="form-label text-muted fw-bold">اسم المريض</label>
-                                    <input type="text" class="form-control form-control-lg bg-light border-0"
-                                           t-att-value="patient.pat_name" readonly="1"/>
+                                    <input type="text" class="form-control form-control-lg bg-light border-0" t-att-value="patient.pat_name" readonly="1"/>
                                 </div>
-
                                 <div class="mb-4">
                                     <label class="form-label text-muted fw-bold d-flex justify-content-between">
                                         <span>الكمية المطلوبة</span>
-                                        <span class="text-info">
-                                            <i class="fa fa-info-circle"></i>
-                                            المتاح:
-                                            <t t-esc="stock.qty_net"/>
-                                        </span>
+                                        <span class="text-info"><i class="fa fa-info-circle"></i> المتاح: <t t-esc="stock.qty_net"/></span>
                                     </label>
                                     <div class="input-group input-group-lg">
-                                        <input type="number" name="qty"
-                                               class="form-control border-success text-center fw-bold" value="1" min="1"
-                                               t-att-max="stock.qty_net" required="1" style="border-width: 2px;"/>
-                                        <span class="input-group-text bg-success text-white border-success"
-                                              style="border-width: 2px;">وحدة
-                                        </span>
+                                        <input type="number" name="qty" class="form-control border-success text-center fw-bold" value="1" min="1" t-att-max="stock.qty_net" required="1" style="border-width: 2px;"/>
+                                        <span class="input-group-text bg-success text-white border-success" style="border-width: 2px;">وحدة</span>
                                     </div>
                                 </div>
-
-                                <div class="alert alert-info border-0 d-flex align-items-center mb-4"
-                                     style="background: #e3f2fd; border-radius: 12px;">
-                                    <i class="fa fa-clock-o fs-3 me-3 text-primary"></i>
-                                    <small class="fw-bold text-primary">تنويه: سيتم حجز الدواء باسمك لمدة 24 ساعة فقط.
-                                    </small>
-                                </div>
-
                                 <t t-if="existing_booking">
-                                    <button type="button" class="btn btn-secondary btn-lg w-100 rounded-pill fw-bold"
-                                            disabled="1">
-                                        <i class="fa fa-ban"></i>
-                                        غير مصرح لك بالحجز
-                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-lg w-100 rounded-pill fw-bold" disabled="1">غير مصرح لك بالحجز</button>
                                 </t>
                                 <t t-else="">
-                                    <button type="submit" class="btn-dawai btn btn-lg w-100 mb-2">
-                                        <i class="fa fa-check-circle"></i>
-                                        تأكيد الحجز نهائياً
-                                    </button>
-                                    <a href="/dawai/search" class="btn btn-light w-100 rounded-pill fw-bold text-muted">
-                                        تراجع والعودة للبحث
-                                    </a>
+                                    <button type="submit" class="btn-dawai btn btn-lg w-100 mb-2">تأكيد الحجز نهائياً</button>
                                 </t>
                             </form>
                         </div>
@@ -361,37 +285,26 @@
         </t>
     </template>
 
+    <!-- 3. صفحة نتيجة الحجز -->
     <template id="portal_booking_result" name="نتيجة الحجز">
         <t t-call="dawaee_platform.portal_layout">
             <div class="container py-5 text-center" style="max-width: 600px;">
                 <t t-if="success">
                     <div class="card dawai-card p-5 border-top border-5 border-success">
-                        <div class="mb-4">
-                            <i class="fa fa-check-circle text-success" style="font-size: 6rem;"></i>
-                        </div>
+                        <i class="fa fa-check-circle text-success mb-4" style="font-size: 6rem;"></i>
                         <h2 class="fw-bold text-success mb-3">تم تأكيد الحجز بنجاح!</h2>
-                        <p class="text-muted fs-5 mb-4">تم تأمين حصتك الطبية في الصيدلية بنجاح.</p>
-
                         <div class="bg-light p-4 mb-4" style="border-radius: 20px; border: 2px dashed #00875A;">
                             <h6 class="text-muted mb-2">رمز استلام الحجز</h6>
-                            <h1 class="fw-bold text-dark font-monospace mb-0" style="letter-spacing: 5px;">
-                                <t t-esc="booking.booking_code"/>
-                            </h1>
+                            <h1 class="fw-bold text-dark font-monospace mb-0" style="letter-spacing: 5px;"><t t-esc="booking.booking_code"/></h1>
                         </div>
-
-                        <div class="d-flex justify-content-center gap-3">
-                            <a href="/dawai/my-bookings" class="btn-dawai btn px-4">متابعة الحجز</a>
-                            <a href="/dawai/search" class="btn-dawai-outline btn px-4">الصفحة الرئيسية</a>
-                        </div>
+                        <a href="/dawai/my-bookings" class="btn-dawai btn px-4">متابعة الحجز</a>
                     </div>
                 </t>
                 <t t-else="">
                     <div class="card dawai-card p-5 border-top border-5 border-danger">
                         <i class="fa fa-times-circle text-danger mb-4" style="font-size: 6rem;"></i>
                         <h2 class="fw-bold text-danger mb-3">نأسف، لم يتم الحجز</h2>
-                        <p class="alert alert-danger fw-bold rounded-pill">
-                            <t t-esc="error"/>
-                        </p>
+                        <p class="alert alert-danger fw-bold rounded-pill"><t t-esc="error"/></p>
                         <a href="/dawai/search" class="btn btn-secondary rounded-pill px-5 mt-3">العودة للبحث</a>
                     </div>
                 </t>
@@ -399,24 +312,16 @@
         </t>
     </template>
 
+    <!-- 4. صفحة حجوزاتي -->
     <template id="portal_my_bookings" name="حجوزاتي">
         <t t-call="dawaee_platform.portal_layout">
             <div class="container mb-5">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-                    <h2 class="fw-bold text-dark">
-                        <i class="fa fa-folder-open text-warning me-2"></i>
-                        السجل الطبي وحجوزاتي
-                    </h2>
-                    <a href="/dawai/search" class="btn-dawai-outline btn">
-                        <i class="fa fa-plus"></i>
-                        حجز دواء جديد
-                    </a>
+                    <h2 class="fw-bold text-dark"><i class="fa fa-folder-open text-warning me-2"></i> السجل الطبي وحجوزاتي</h2>
+                    <a href="/dawai/search" class="btn-dawai-outline btn"><i class="fa fa-plus"></i> حجز دواء جديد</a>
                 </div>
-
                 <t t-if="not bookings">
                     <div class="text-center py-5">
-                        <img src="/web/static/img/empty_box.svg" alt="Empty"
-                             style="width: 150px; opacity: 0.5; margin-bottom: 20px;"/>
                         <h4 class="text-muted fw-bold">لا توجد لديك أي حجوزات سابقة.</h4>
                     </div>
                 </t>
@@ -426,70 +331,29 @@
                             <div class="col">
                                 <div class="card dawai-card h-100 p-0">
                                     <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                                        <h4 class="fw-bold text-primary mb-0 font-monospace"
-                                            style="letter-spacing: 2px;">
-                                            <t t-esc="b.booking_code"/>
-                                        </h4>
+                                        <h4 class="fw-bold text-primary mb-0 font-monospace" style="letter-spacing: 2px;"><t t-esc="b.booking_code"/></h4>
                                         <span t-attf-class="status-badge bg-#{'warning text-dark' if b.status == 'active' else 'success text-white' if b.status == 'dispensed' else 'secondary text-white' if b.status == 'cancelled' else 'danger text-white'}">
-                                            <t t-if="b.status == 'active'">
-                                                <i class="fa fa-clock-o"></i>
-                                                نشط
-                                            </t>
-                                            <t t-elif="b.status == 'dispensed'">
-                                                <i class="fa fa-check"></i>
-                                                تم الصرف
-                                            </t>
-                                            <t t-elif="b.status == 'cancelled'">
-                                                <i class="fa fa-ban"></i>
-                                                ملغي
-                                            </t>
-                                            <t t-elif="b.status == 'expired'">
-                                                <i class="fa fa-times"></i>
-                                                منتهي
-                                            </t>
+                                            <t t-if="b.status == 'active'">نشط</t>
+                                            <t t-elif="b.status == 'dispensed'">تم الصرف</t>
+                                            <t t-elif="b.status == 'cancelled'">ملغي</t>
+                                            <t t-elif="b.status == 'expired'">منتهي</t>
                                         </span>
                                     </div>
                                     <div class="card-body px-4">
-                                        <h5 class="fw-bold mb-3">
-                                            <t t-esc="b.med_id.med_name"/>
-                                        </h5>
+                                        <h5 class="fw-bold mb-3"><t t-esc="b.med_id.med_name"/></h5>
                                         <div class="row text-muted small">
-                                            <div class="col-6 mb-2">
-                                                <i class="fa fa-h-square"></i>
-                                                <t t-esc="b.pharm_id.pharm_name"/>
-                                            </div>
-                                            <div class="col-6 mb-2">
-                                                <i class="fa fa-calendar"></i>
-                                                <span t-field="b.booking_date" t-options="{'widget': 'date'}"/>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fa fa-cube"></i>
-                                                الكمية:
-                                                <t t-esc="b.qty_booked"/>
-                                            </div>
-                                            <div class="col-6 text-success fw-bold">
-                                                <i class="fa fa-money"></i>
-                                                <t t-esc="'%.2f' % b.total_price"/>
-                                                SDG
-                                            </div>
+                                            <div class="col-6 mb-2"><i class="fa fa-h-square"></i> <t t-esc="b.pharm_id.pharm_name"/></div>
+                                            <div class="col-6 mb-2"><i class="fa fa-calendar"></i> <span t-field="b.booking_date" t-options="{'widget': 'date'}"/></div>
+                                            <div class="col-6"><i class="fa fa-cube"></i> الكمية: <t t-esc="b.qty_booked"/></div>
+                                            <div class="col-6 text-success fw-bold"><i class="fa fa-money"></i> <t t-esc="'%.2f' % b.total_price"/> SDG</div>
                                         </div>
                                     </div>
                                     <t t-if="b.status == 'active'">
                                         <div class="card-footer bg-light border-0 p-3 d-flex justify-content-between align-items-center">
-                                            <small class="text-danger fw-bold">
-                                                <i class="fa fa-warning"></i>
-                                                ينتهي في:
-                                                <span t-field="b.pickup_deadline" t-options="{'widget': 'datetime'}"/>
-                                            </small>
-                                            <form t-attf-action="/dawai/booking/cancel/#{b.id}" method="POST"
-                                                  class="m-0">
-                                                <input type="hidden" name="csrf_token"
-                                                       t-att-value="request.csrf_token()"/>
-                                                <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"
-                                                        onclick="return confirm('تأكيد الإلغاء؟ سيتم إعادة الكمية للمخزون.')">
-                                                    إلغاء
-                                                </button>
+                                            <small class="text-danger fw-bold"><i class="fa fa-warning"></i> ينتهي في: <span t-field="b.pickup_deadline" t-options="{'widget': 'datetime'}"/></small>
+                                            <form t-attf-action="/dawai/booking/cancel/#{b.id}" method="POST" class="m-0">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">إلغاء</button>
                                             </form>
                                         </div>
                                     </t>

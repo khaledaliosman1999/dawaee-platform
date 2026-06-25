@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 # ============================================================
-# جدول 7: حجز الأدوية (Medicine Booking Table)
+# جدول 7: حجز الأدوية (Medicine Booking Table) - النسخة النهائية المدمجة
 # الربط التسلسلي: يرجع لـ Inventory(6) + Patient(4)
-#
-# التصميم:
-# - stock_id → Inventory(6)  يضمن: دواء + صيدلية + توفر مخزون
-# - med_id, pharm_id → related من stock_id (ليست مكررة)
-# - qty_booked → تعديل مقترح: الكمية المطلوبة
-# - Python Constraint: UNIQUE(pat_id, med_id) WHERE status='active'
 # ============================================================
 
 import random
@@ -61,7 +55,7 @@ class DawaiMedicineBooking(models.Model):
         help='مُستخرَج تلقائياً من سجل المخزون',
     )
 
-    # ─── تعديل مقترح: qty_booked (كان مفقوداً في الملف) ──
+    # ─── بيانات الكمية والسعر (تم تعديل السعر ليكون ثابتاً) ──
     qty_booked = fields.Integer(
         string='الكمية المطلوبة',
         required=True,
@@ -71,21 +65,16 @@ class DawaiMedicineBooking(models.Model):
     )
     unit_price_at_booking = fields.Float(
         string='السعر وقت الحجز (SDG)',
-        related='stock_id.unit_price',
         store=True,
         readonly=True,
-        help='يُحفظ تلقائياً من سعر المخزون وقت الحجز',
+        tracking=True,
+        help='يُحفظ كقيمة ثابتة وقت الحجز ولا يتأثر بتغير سعر المخزون لاحقاً',
     )
     total_price = fields.Float(
         string='الإجمالي (SDG)',
         compute='_compute_total_price',
         store=True,
     )
-
-    @api.depends('unit_price_at_booking', 'qty_booked')
-    def _compute_total_price(self):
-        for rec in self:
-            rec.total_price = rec.unit_price_at_booking * rec.qty_booked
 
     # ─── بيانات الحجز ────────────────────────────────────
     booking_date = fields.Datetime(
@@ -141,7 +130,21 @@ class DawaiMedicineBooking(models.Model):
         readonly=True,
     )
 
+    # ─── Onchange Methods (واجهة المستخدم) ────────────────
+    @api.onchange('stock_id')
+    def _onchange_stock_id(self):
+        """تعبئة السعر تلقائياً في واجهة المستخدم بمجرد اختيار المخزون"""
+        if self.stock_id:
+            self.unit_price_at_booking = self.stock_id.unit_price
+        else:
+            self.unit_price_at_booking = 0.0
+
     # ─── Compute Methods ──────────────────────────────────
+    @api.depends('unit_price_at_booking', 'qty_booked')
+    def _compute_total_price(self):
+        for rec in self:
+            rec.total_price = rec.unit_price_at_booking * rec.qty_booked
+
     @api.depends('booking_date')
     def _compute_pickup_deadline(self):
         for rec in self:
@@ -165,13 +168,20 @@ class DawaiMedicineBooking(models.Model):
         chars = string.ascii_uppercase + string.digits
         return ''.join(random.choices(chars, k=length))
 
-    # ─── Create: توليد الكودات + حجز الكمية ───────────────
+    # ─── Create: تجميد السعر + توليد الكودات + حجز الكمية ─
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             vals['booking_code'] = self._generate_code()
             vals['verification_code'] = self._generate_code()
+
+            # ضمان تجميد السعر في قاعدة البيانات حتى لو لم يُمرر من الواجهة
+            if 'stock_id' in vals and not vals.get('unit_price_at_booking'):
+                stock_record = self.env['dawai.inventory'].browse(vals['stock_id'])
+                vals['unit_price_at_booking'] = stock_record.unit_price
+
         records = super().create(vals_list)
+
         # حجز الكمية في المخزون فور إنشاء الحجز
         for rec in records:
             rec.stock_id.write({
@@ -198,13 +208,12 @@ class DawaiMedicineBooking(models.Model):
     # ─── Cron: انتهاء صلاحية الحجوزات بعد 24 ساعة ────────
     @api.model
     def _cron_expire_bookings(self):
-        """يُشغَّل كل ساعة — يُحوّل الحجوزات المنتهية لـ expired"""
+        """يُشغَّل كل فترة — يُحوّل الحجوزات المنتهية لـ expired"""
         expired = self.search([
             ('status', '=', 'active'),
             ('pickup_deadline', '<', fields.Datetime.now()),
         ])
         for rec in expired:
-            # استعادة الكمية المحجوزة
             rec.stock_id.write({
                 'qty_reserved': max(
                     rec.stock_id.qty_reserved - rec.qty_booked, 0
@@ -268,5 +277,5 @@ class DawaiMedicineBooking(models.Model):
                 'default_qty_dispensed': self.qty_booked,
                 'default_unit_price': self.unit_price_at_booking,
             },
-            'target': 'new', # يفتحها في نافذة منبثقة (Pop-up) للسرعة
+            'target': 'new',  # يفتحها في نافذة منبثقة (Pop-up) للسرعة
         }

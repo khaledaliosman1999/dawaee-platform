@@ -95,7 +95,7 @@ class DawaiPrescription(models.Model):
     is_valid = fields.Boolean(
         string='الوصفة سارية؟',
         compute='_compute_is_valid',
-        store=False,
+        store=True,
     )
     display_name = fields.Char(
         compute='_compute_display_name',
@@ -109,6 +109,7 @@ class DawaiPrescription(models.Model):
                 rec.allowed_qty - rec.qty_dispensed_so_far, 0
             )
 
+    @api.depends('expiry_date', 'qty_dispensed_so_far', 'allowed_qty')
     def _compute_is_valid(self):
         today = fields.Date.today()
         for rec in self:

@@ -8,3 +8,4 @@ from . import inventory            # 6 - يرجع لـ 5
 from . import medicine_booking     # 7 - يرجع لـ 6+4
 from . import prescription         # 8 - يرجع لـ 7
 from . import dispensing_transaction  # 9 - يرجع لـ 7+8
+from . import res_users

@@ -17,6 +17,7 @@
         'views/stock_inbound_inventory_views.xml',
         'views/booking_prescription_dispensing_views.xml',
         'views/website_templates.xml',
+        'views/portal_pharmacist_templates.xml',
         'data/cron.xml',
 
         'views/menu_views.xml',

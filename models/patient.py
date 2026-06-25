@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ============================================================
 # جدول 4: المرضى (Patients Table)
 # يمثل كينونة المستفيد
@@ -23,7 +22,7 @@ class DawaiPatient(models.Model):
     # ─── الحقول الأساسية ─────────────────────────────────
     pat_name = fields.Char(
         string='الاسم الكامل',
-        size=60,        # تعديل: 30 → 60 (الأسماء الرباعية عربياً)
+        size=60,
         required=True,
         tracking=True,
     )
@@ -51,7 +50,7 @@ class DawaiPatient(models.Model):
     )
     email = fields.Char(
         string='البريد الإلكتروني',
-        size=60,        # تعديل: 30 → 60 (البريد قد يتجاوز 30 حرفاً)
+        size=60,
     )
     active = fields.Boolean(
         string='حالة الحساب',
@@ -111,14 +110,19 @@ class DawaiPatient(models.Model):
         for rec in self:
             if rec.national_id and not rec.national_id.isdigit():
                 raise ValidationError('الرقم الوطني يجب أن يحتوي على أرقام فقط!')
-            if rec.national_id and len(rec.national_id) != 12:
-                raise ValidationError('الرقم الوطني يجب أن يكون 12 رقماً بالضبط!')
+            if rec.national_id and len(rec.national_id) != 11:
+                raise ValidationError('الرقم الوطني يجب أن يكون 11 رقماً بالضبط!')
 
-    @api.constrains('email')
     def _check_email(self):
+        # تعريف التعبير النمطي للبريد الإلكتروني القياسي
+        email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+
         for rec in self:
-            if rec.email and '@' not in rec.email:
-                raise ValidationError('صيغة البريد الإلكتروني غير صحيحة!')
+            if rec.email:  # نتحقق فقط إذا كان الحقل غير فارغ
+                # استخدام re.match للتحقق من تطابق النص مع النمط
+                if not rec.match(email_regex, rec.email):
+                    raise ValidationError(
+                        'صيغة البريد الإلكتروني غير صحيحة! يرجى التأكد من كتابته بدون مسافات وبصيغة سليمة (مثال: info@company.com).')
 
     # ─── SQL Constraints ──────────────────────────────────
     _sql_constraints = [
