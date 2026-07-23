@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_expired_bookings" model="ir.actions.report">
+        <field name="name">تقرير الحجوزات الفاقدة</field>
+        <field name="model">dawai.medicine.booking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dawaee_platform.report_expired_bookings_template</field>
+        <field name="report_file">dawaee_platform.report_expired_bookings_template</field>
+    </record>
+
+    <template id="report_expired_bookings_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page"
+                     style="direction: rtl; text-align: right; font-family: 'Montserrat', 'Amiri', sans-serif;">
+
+                    <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #8a6d1f; padding-bottom: 12px;">
+                        <h2 style="color: #8a6d1f; margin-bottom: 4px; font-weight: 700;">تقرير الحجوزات الفاقدة</h2>
+                        <p style="color: #666; font-size: 12px; margin: 0;">
+                            منصة دوائي — الصيدلية:
+                            <span t-esc="pharmacy_name"/>
+                        </p>
+                    </div>
+
+                    <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 33%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">إجمالي الحجوزات (بنفس الفترة)</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="total_count"/>
+                                </div>
+                            </td>
+                            <td style="width: 33%; text-align: center; padding: 10px;">
+                                <div style="font-size: 11px; color: #b91c1c;">عدد الحجوزات الفاقدة</div>
+                                <div style="font-size: 18px; font-weight: 700; color: #b91c1c;">
+                                    <span t-esc="len(docs)"/>
+                                </div>
+                            </td>
+                            <td style="width: 33%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">نسبة الفاقد</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="'{:.1f}'.format(loss_percentage)"/>%
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="table table-sm" style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <thead>
+                            <tr style="background-color: #8a6d1f; color: white;">
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">رمز الحجز</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">المريض</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">الدواء</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">الصيدلية</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">الكمية</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">وقت الحجز</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="o">
+                                <tr t-attf-style="background-color: #{'#f7f3e8' if o_index % 2 == 0 else '#ffffff'};">
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;" dir="ltr">
+                                        <span t-field="o.booking_code"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.pat_id.pat_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.med_id.med_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.pharm_id.pharm_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;">
+                                        <span t-field="o.qty_booked"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;" dir="ltr">
+                                        <span t-field="o.booking_date"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;">
+                                        <span t-if="o.status == 'expired'" style="color: #b91c1c; font-weight: 700;">
+                                            منتهية
+                                        </span>
+                                        <span t-elif="o.status == 'cancelled'"
+                                              style="color: #92400e; font-weight: 700;">ملغية
+                                        </span>
+                                        <span t-else="">
+                                            <span t-esc="o.status"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div t-if="not docs" style="text-align: center; padding: 40px; color: #999;">
+                        لا توجد حجوزات فاقدة مطابقة لمعايير البحث المحددة.
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

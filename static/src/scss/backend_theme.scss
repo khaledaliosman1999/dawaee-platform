@@ -1,0 +1,78 @@
+/* =========================================================
+   THE "NUKE IT FROM ORBIT" NAVBAR OVERRIDE - ODOO 18
+   ========================================================= */
+
+/* 1. السيطرة على المتغيرات الجذرية */
+:root, body {
+    --o-brand-odoo: #0EA5E9 !important;
+    --o-brand-primary: #0EA5E9 !important;
+}
+
+/* 2. تلوين الجدار الخلفي للشريط العلوي بالكامل بالكحلي */
+header,
+.o_main_navbar,
+header.o_navbar {
+    background-color: #0F172A !important;
+    background: #0F172A !important;
+    border-bottom: 3px solid #0EA5E9 !important;
+}
+
+/* 3. القنبلة الفراغية: مسح لون أي صندوق داخلي يخص القوائم (هنا يختبئ البنفسجي) */
+.o_main_navbar .o_menu_sections,
+.o_main_navbar .o_menu_systray,
+.o_main_navbar .o_menu_sections > *,
+.o_main_navbar .o_menu_sections > * > *,
+.o_main_navbar .o_menu_systray > *,
+.o_main_navbar .o_menu_systray > * > * {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+/* 4. توحيد لون الخطوط للأبيض */
+.o_main_navbar a,
+.o_main_navbar button,
+.o_main_navbar span,
+.o_main_navbar i {
+    color: #F8FAFC !important;
+}
+
+/* 5. إعادة بناء تفاعل الماوس والقائمة النشطة (تظليل أزرق داكن) */
+.o_main_navbar .o_menu_sections > *:hover > a,
+.o_main_navbar .o_menu_sections > *.active > a,
+.o_main_navbar .o_menu_sections > .show > a,
+.o_main_navbar .o_menu_sections > * > a:hover,
+.o_main_navbar .o_menu_sections > * > a.active {
+    background-color: #1E293B !important;
+    color: #0EA5E9 !important;
+    border-radius: 4px;
+}
+
+/* 6. إصلاح القائمة الجانبية للتطبيقات (Search Panel) */
+body .o_search_panel {
+    background-color: #F8FAFC !important;
+    border-left: 1px solid #E2E8F0 !important;
+}
+body .o_search_panel header {
+    background-color: #F8FAFC !important;
+    color: #1E293B !important;
+}
+body .o_search_panel .list-group-item {
+    background-color: transparent !important;
+    color: #475569 !important;
+}
+body .o_search_panel .list-group-item.active {
+    background-color: #E0F2FE !important;
+    color: #0EA5E9 !important;
+    font-weight: bold !important;
+}
+
+/* 7. الأزرار الأساسية والجداول */
+body .btn-primary {
+    background-color: #0EA5E9 !important;
+    border-color: #0EA5E9 !important;
+    color: white !important;
+}
+body .o_list_view .table-responsive {
+    border-radius: 10px !important;
+    border: 1px solid #E2E8F0 !important;
+}

@@ -9,3 +9,8 @@ from . import medicine_booking     # 7 - يرجع لـ 6+4
 from . import prescription         # 8 - يرجع لـ 7
 from . import dispensing_transaction  # 9 - يرجع لـ 7+8
 from . import res_users
+from . import report_wizard
+from . import medicine_demand_wizard
+from . import inventory_report_wizard
+from . import expired_bookings_wizard
+from . import prescription_report_wizard

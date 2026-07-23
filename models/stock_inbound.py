@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# ============================================================
+# جدول 5: توريد المخزن
+# لتوثيق توريد الأدوية
+# ============================================================
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
@@ -10,26 +14,55 @@ class DawaiStockInbound(models.Model):
     _order = 'in_date desc'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    # ─── الحقل المساعد لجلب صيدلية المستخدم الحالي ─────────
+    current_user_pharmacy_id = fields.Many2one(
+        'dawai.pharmacy',
+        compute='_compute_current_user_pharmacy'
+    )
+
+    def _compute_current_user_pharmacy(self):
+        for rec in self:
+            # جلب الصيدلية المربوطة بالمستخدم الذي يسجل الدخول حالياً
+            rec.current_user_pharmacy_id = self.env.user.pharmacy_id.id
+
     supplier_id = fields.Many2one(
         'dawai.supplier', string='المورد',
-        required=True, ondelete='restrict', tracking=True,
+        ondelete='restrict',
+        tracking=True,
     )
+
+    # ─── حقل الصيدلية (مُعدل لإضافة القيمة الافتراضية) ─────
     pharm_id = fields.Many2one(
         'dawai.pharmacy', string='الصيدلية المستلِمة',
-        required=True, ondelete='restrict', tracking=True,
+        required=True,
+        ondelete='restrict',
+        tracking=True,
+        default=lambda self: self.env.user.pharmacy_id.id  # ← التعبئة التلقائية بصيدلية المستخدم
     )
+
     med_id = fields.Many2one(
-        'dawai.medicine', string='الدواء',
-        required=True, ondelete='restrict', tracking=True,
+        'dawai.medicine',
+        string='الدواء',
+        required=True,
+        ondelete='restrict',
+        tracking=True,
     )
     qty_in = fields.Integer(
-        string='الكمية الواردة', required=True, tracking=True,
+        string='الكمية الواردة',
+        required=True,
+        tracking=True,
     )
     in_date = fields.Date(
         string='تاريخ دخول الشحنة',
-        default=fields.Date.today, required=True, tracking=True,
+        default=fields.Date.today,
+        required=True,
+        tracking=True,
     )
-    batch_no = fields.Char(string='رقم الدفعة', size=20, tracking=True)
+    batch_no = fields.Char(
+        string='رقم الدفعة',
+        size=20,
+        tracking=True
+    )
 
     # ── سعر البيع في هذه الصيدلية ───────────────────────
     unit_price = fields.Float(
@@ -37,6 +70,7 @@ class DawaiStockInbound(models.Model):
         digits=(10, 2),
         default=0.0,
         tracking=True,
+        required=True,
         help='السعر الذي ستبيعه الصيدلية للمريض — يُنسخ تلقائياً للمخزون',
     )
 
@@ -48,7 +82,10 @@ class DawaiStockInbound(models.Model):
         ],
         default='draft', tracking=True, readonly=True,
     )
-    display_name = fields.Char(compute='_compute_display_name', store=True)
+    display_name = fields.Char(
+        compute='_compute_display_name',
+        store=True
+    )
 
     @api.depends('med_id', 'pharm_id', 'in_date')
     def _compute_display_name(self):
@@ -96,6 +133,17 @@ class DawaiStockInbound(models.Model):
                     'لا يمكن إعادة الشحنة المعالجة للمسودة!'
                 )
             rec.state = 'draft'
+
+    # ─── قيود الحماية والأمان ─────────────────────────────
+
+    @api.constrains('pharm_id')
+    def _check_pharmacy_access(self):
+        for rec in self:
+            # التأكد من أن المستخدم ليس "مدير نظام" (المدير يحق له التجاوز)
+            if not self.env.user.has_group('base.group_system'):
+                # التأكد أن الصيدلية المختارة تطابق صيدلية المستخدم المربوطة بحسابه
+                if rec.pharm_id and rec.pharm_id != self.env.user.pharmacy_id:
+                    raise ValidationError('عذراً، غير مسموح لك بإضافة توريد لصيدلية غير المربوطة بحسابك!')
 
     @api.constrains('qty_in')
     def _check_qty(self):

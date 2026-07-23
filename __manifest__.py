@@ -1,12 +1,12 @@
 {
     'name': 'منصة دوائي',
     'version': '18.0.1.0.0',
+    'sequence': '-110',
     'summary': 'منصة إلكترونية متكاملة لإدارة وتوفير الأدوية المزمنة والنادرة',
     'description': """
-        نظام إدارة الأدوية للصيدليات في الخرطوم
-        جامعة السودان للعلوم والتكنولوجيا — قسم نظم المعلومات الإدارية 2026
+        نظام إدارة الأدوية للصيدليات في الخرطوم — قسم نظم المعلومات الإدارية 2026
     """,
-    'author': 'Khaled Aili Osman Sudan University of Science and Technology - MIS Dept.',
+    'author': 'Khaled Ali Osman Sudan University of Science and Technology - MIS Dept.',
     'category': 'Healthcare',
     'depends': ['base', 'website', 'mail'],
     'data': [
@@ -16,13 +16,29 @@
         'views/supplier_pharmacy_patient_views.xml',
         'views/stock_inbound_inventory_views.xml',
         'views/booking_prescription_dispensing_views.xml',
+        'views/report_wizard_view.xml',
         'views/website_templates.xml',
         'views/portal_pharmacist_templates.xml',
+        'report/dispensing_report_template.xml',
+        'views/medicine_demand_wizard_view.xml',
+        'report/medicine_demand_report_template.xml',
+        'views/inventory_report_wizard_view.xml',
+        'report/inventory_report_template.xml',
+        'views/inventory_report_wizard_view.xml',
+        'report/inventory_report_template.xml',
+        'views/expired_bookings_wizard_view.xml',
+        'report/expired_bookings_report_template.xml',
+        'views/prescription_wizard_view.xml',
+        'report/prescription_report_template.xml',
         'data/cron.xml',
-
         'views/menu_views.xml',
 
     ],
+    'assets': {
+        'web.assets_backend': [
+            'dawaee_platform/static/src/scss/backend_theme.scss',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

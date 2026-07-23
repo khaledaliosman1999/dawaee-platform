@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # ============================================================
 # جدول 8: الوصفات الطبية (Prescriptions Table)
-# الربط التسلسلي: يرجع لـ Booking(7)
-#
-# pat_id و med_id → related من booking_id (تسلسلي)
+# التعديل الجديد: الوصفة مستقلة، تُربط بمريض واحد، وتحتوي عدة أدوية
+# ملاحظة هامة: يتم التعامل مع الوصفة بنظام "مرات الصرف" (Refills)
 # ============================================================
 
 from odoo import models, fields, api
@@ -17,39 +16,22 @@ class DawaiPrescription(models.Model):
     _order = 'issue_date desc'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    # ─── الربط التسلسلي: يرجع للحجز (7) ─────────────────
-    booking_id = fields.Many2one(
-        comodel_name='dawai.medicine.booking',
-        string='رقم الحجز المرتبط',
+    # ─── الربط المباشر بالمريض (بدلاً من الحجز) ───────────
+    pat_id = fields.Many2one(
+        comodel_name='dawai.patient',
+        string='المريض',
         required=True,
         ondelete='restrict',
         tracking=True,
-        help='الجدول 7 — يضمن وجود حجز نشط صحيح قبل تسجيل الوصفة',
+        help='الجدول 4 — المريض صاحب الوصفة',
     )
 
-    # ─── Related من booking_id (الربط التسلسلي) ──────────
-    pat_id = fields.Many2one(
-        comodel_name='dawai.patient',
-        related='booking_id.pat_id',
-        string='المريض',
-        store=True,
-        readonly=True,
-        help='مُستخرَج من الحجز — الجدول 4 عبر الجدول 7',
-    )
-    med_id = fields.Many2one(
+    # ─── علاقة متعدد إلى متعدد (عدة أدوية في وصفة واحدة) ──
+    medicine_ids = fields.Many2many(
         comodel_name='dawai.medicine',
-        related='booking_id.med_id',
-        string='الدواء',
-        store=True,
-        readonly=True,
-        help='مُستخرَج من الحجز — الجدول 1 عبر الجداول 7→6',
-    )
-    pharm_id = fields.Many2one(
-        comodel_name='dawai.pharmacy',
-        related='booking_id.pharm_id',
-        string='الصيدلية',
-        store=True,
-        readonly=True,
+        string='الأدوية الموصوفة',
+        required=True,
+        help='الجدول 1 — يمكن اختيار دواء واحد أو أكثر في نفس الوصفة',
     )
 
     # ─── بيانات الوصفة ───────────────────────────────────
@@ -62,12 +44,24 @@ class DawaiPrescription(models.Model):
         string='رقم هاتف الطبيب',
         size=15,
     )
+
+    # ─── إحصائيات مرات الصرف (Refills) ───────────────────
     allowed_qty = fields.Integer(
-        string='الكمية المسموحة شهرياً',
+        string='إجمالي مرات الصرف المسموحة',
         required=True,
+        default=1,
         tracking=True,
-        help='الحد الأقصى الذي يمكن صرفه شهرياً بهذه الوصفة',
+        help='الحد الأقصى لعدد المرات التي يمكن للمريض فيها صرف أدوية هذه الوصفة',
     )
+    qty_dispensed_so_far = fields.Integer(
+        string='مرات الصرف الفعلية',
+        default=0,
+        readonly=True,
+        tracking=True,
+        help='يُحدَّث تلقائياً بزيادة (1) عند كل عملية صرف مرتبطة بهذه الوصفة',
+    )
+
+    # ─── التواريخ ─────────────────────────────────────────
     issue_date = fields.Date(
         string='تاريخ إصدار الوصفة',
         required=True,
@@ -78,17 +72,10 @@ class DawaiPrescription(models.Model):
         string='تاريخ انتهاء الوصفة',
         tracking=True,
     )
-    qty_dispensed_so_far = fields.Integer(
-        string='الكمية المصروفة حتى الآن',
-        default=0,
-        readonly=True,
-        tracking=True,
-        help='يُحدَّث تلقائياً عند كل عملية صرف',
-    )
 
     # ─── Computed ─────────────────────────────────────────
     qty_remaining = fields.Integer(
-        string='الكمية المتبقية',
+        string='المرات المتبقية',
         compute='_compute_qty_remaining',
         store=True,
     )
@@ -117,13 +104,12 @@ class DawaiPrescription(models.Model):
             has_remaining = rec.qty_remaining > 0
             rec.is_valid = not_expired and has_remaining
 
-    @api.depends('booking_id', 'issue_date')
+    @api.depends('pat_id', 'issue_date')
     def _compute_display_name(self):
         for rec in self:
-            pat  = rec.pat_id.pat_name   if rec.pat_id  else '—'
-            med  = rec.med_id.med_name   if rec.med_id  else '—'
-            date = str(rec.issue_date)   if rec.issue_date else '—'
-            rec.display_name = f'وصفة: {pat} | {med} | {date}'
+            pat = rec.pat_id.pat_name if rec.pat_id else '—'
+            date = str(rec.issue_date) if rec.issue_date else '—'
+            rec.display_name = f'وصفة: {pat} | {date}'
 
     # ─── Constraints ──────────────────────────────────────
     @api.constrains('allowed_qty')
@@ -131,7 +117,7 @@ class DawaiPrescription(models.Model):
         for rec in self:
             if rec.allowed_qty <= 0:
                 raise ValidationError(
-                    'الكمية المسموحة يجب أن تكون أكبر من صفر!'
+                    'مرات الصرف المسموحة يجب أن تكون أكبر من صفر!'
                 )
 
     @api.constrains('issue_date', 'expiry_date')
@@ -148,6 +134,6 @@ class DawaiPrescription(models.Model):
         for rec in self:
             if rec.qty_dispensed_so_far > rec.allowed_qty:
                 raise ValidationError(
-                    f'الكمية المصروفة ({rec.qty_dispensed_so_far}) '
-                    f'تجاوزت الكمية المسموحة ({rec.allowed_qty})!'
+                    f'مرات الصرف الفعلية ({rec.qty_dispensed_so_far}) '
+                    f'تجاوزت المسموح به ({rec.allowed_qty})!'
                 )

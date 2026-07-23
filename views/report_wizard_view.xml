@@ -1,0 +1,32 @@
+<odoo>
+    <record id="view_dispensing_report_wizard" model="ir.ui.view">
+        <field name="name">dispensing.report.wizard.form</field>
+        <field name="model">dispensing.report.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="report_type"/>
+
+                    <!-- تعريف واحد فقط للحقل -->
+                    <field name="pharmacy_id"
+                           readonly="is_readonly_pharmacy"
+                           options="{'no_create': True}"/>
+
+                    <field name="date_start" invisible="report_type != 'custom'"/>
+                    <field name="date_end" invisible="report_type != 'custom'"/>
+                </group>
+                <footer>
+                    <button name="action_print_report" string="طباعة التقرير" type="object" class="btn-primary"/>
+                    <button string="إلغاء" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dispensing_report_wizard" model="ir.actions.act_window">
+        <field name="name">تقارير الصرف</field>
+        <field name="res_model">dispensing.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

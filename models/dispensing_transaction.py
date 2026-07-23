@@ -2,11 +2,9 @@
 # ============================================================
 # جدول 9: عمليات الصرف (Dispensing Transactions)
 # "الجدول الدوري" — يوثق الحركة الفعلية ويمنع التلاعب
-# الربط التسلسلي: يرجع لـ Booking(7) + Prescription(8)
-#
-# - med_id, pharm_id → related من booking_id (تسلسلي بدون تكرار)
-# - presc_id → nullable (أدوية بدون وصفة)
-# - عند الإنشاء: يُحدِّث المخزون + حالة الحجز + الوصفة تلقائياً
+# - med_id, pharm_id, pat_id → related من booking_id
+# - presc_id → الوصفة المستقلة (يتم التحقق من مطابقة المريض والدواء)
+# - عند الإنشاء: يُحدِّث المخزون + حالة الحجز + الوصفة تلقائياً بنظام (مرات الصرف)
 # ============================================================
 
 from odoo import models, fields, api
@@ -53,6 +51,12 @@ class DawaiDispensingTransaction(models.Model):
         string='المريض',
         store=True,
         readonly=True,
+    )
+
+    # ─── الحقل المساعد لجعل الوصفة إجبارية بالواجهة ───────
+    requires_prescription = fields.Boolean(
+        related='med_id.requires_prescription',
+        string='يحتاج وصفة؟',
     )
 
     # ─── الربط التسلسلي الثانوي: يرجع للوصفة (8) ─────────
@@ -104,7 +108,7 @@ class DawaiDispensingTransaction(models.Model):
     def _compute_display_name(self):
         for rec in self:
             code = rec.booking_id.booking_code if rec.booking_id else '—'
-            date = str(rec.dispense_date)[:16]  if rec.dispense_date else '—'
+            date = str(rec.dispense_date)[:16] if rec.dispense_date else '—'
             rec.display_name = f'صرف [{code}] — {date}'
 
     # ─── Create: تحديث تسلسلي للجداول السابقة ────────────
@@ -118,7 +122,7 @@ class DawaiDispensingTransaction(models.Model):
             # 2. تحديث المخزون (6) — تخفيض الكميات
             stock = rec.booking_id.stock_id
             new_available = stock.qty_available - rec.qty_dispensed
-            new_reserved  = max(
+            new_reserved = max(
                 stock.qty_reserved - rec.booking_id.qty_booked, 0
             )
             if new_available < 0:
@@ -128,19 +132,17 @@ class DawaiDispensingTransaction(models.Model):
                 )
             stock.write({
                 'qty_available': new_available,
-                'qty_reserved':  new_reserved,
-                'last_update':   fields.Datetime.now(),
+                'qty_reserved': new_reserved,
+                'last_update': fields.Datetime.now(),
             })
 
-            # 3. تحديث الوصفة (8) — إن وجدت
+            # 3. تحديث الوصفة (8) — احتساب زيارة/مرة صرف واحدة (+1)
             if rec.presc_id:
-                new_dispensed = (
-                    rec.presc_id.qty_dispensed_so_far + rec.qty_dispensed
-                )
+                new_dispensed = rec.presc_id.qty_dispensed_so_far + 1
                 if new_dispensed > rec.presc_id.allowed_qty:
                     raise ValidationError(
-                        f'الكمية المصروفة تتجاوز المسموح به في الوصفة '
-                        f'({rec.presc_id.allowed_qty})!'
+                        f'عفواً، هذه الوصفة استنفدت الحد الأقصى لمرات الصرف المسموحة '
+                        f'({rec.presc_id.allowed_qty} مرات)!'
                     )
                 rec.presc_id.write({
                     'qty_dispensed_so_far': new_dispensed
@@ -172,14 +174,48 @@ class DawaiDispensingTransaction(models.Model):
                     'لا يمكن الصرف على حجز منتهي المدة.'
                 )
 
+    # ─── تعديل شامل للتحقق من الوصفة الطبية الجديدة ────────
     @api.constrains('presc_id', 'booking_id')
-    def _check_prescription_required(self):
-        """إن كان الدواء يحتاج وصفة — يجب ربط وصفة"""
+    def _check_prescription_validity(self):
+        """التحقق من كل الشروط الطبية والمنطقية للوصفة"""
         for rec in self:
-            if (rec.med_id and
-                    rec.med_id.requires_prescription and
-                    not rec.presc_id):
+            # 1. إذا كان الدواء يحتاج وصفة، يجب إرفاقها
+            if rec.med_id.requires_prescription and not rec.presc_id:
                 raise ValidationError(
-                    f'الدواء "{rec.med_id.med_name}" يحتاج وصفة طبية!\n'
-                    f'يرجى ربط الوصفة الطبية قبل إتمام الصرف.'
+                    f'الدواء "{rec.med_id.med_name}" يحتاج وصفة طبية إجبارية!\n'
+                    f'يرجى إرفاق الوصفة أو إنشاء واحدة جديدة للمريض.'
                 )
+
+            # في حال وجود وصفة مُرفقة، نقوم بفحص بياناتها
+            if rec.presc_id:
+                # 2. التأكد من أن الوصفة تخص نفس المريض
+                if rec.presc_id.pat_id != rec.pat_id:
+                    raise ValidationError(
+                        f'الوصفة الطبية المختارة تخص مريضاً آخر ({rec.presc_id.pat_id.pat_name})!\n'
+                        f'يرجى اختيار وصفة تخص المريض ({rec.pat_id.pat_name}).'
+                    )
+
+                # 3. التأكد من أن الدواء المُراد صرفه موجود داخل الوصفة
+                if rec.med_id not in rec.presc_id.medicine_ids:
+                    raise ValidationError(
+                        f'الدواء "{rec.med_id.med_name}" غير موجود ضمن قائمة '
+                        f'الأدوية المذكورة في الوصفة الطبية المُرفقة!'
+                    )
+
+                # 4. التأكد من صلاحية الوصفة (تاريخ + كمية)
+                if not rec.presc_id.is_valid:
+                    raise ValidationError(
+                        'لا يمكن الصرف! الوصفة الطبية المُرفقة إما منتهية الصلاحية '
+                        'أو تم استنفاد كامل الكمية/المرات المسموحة بها.'
+                    )
+
+    ####################################
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        ids = docids or (data or {}).get('docids') or []
+        docs = self.env['dawai.dispensing.transaction'].browse(ids).exists()
+        return {
+            'doc_ids': ids,
+            'doc_model': 'dawai.dispensing.transaction',
+            'docs': docs,
+        }

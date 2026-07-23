@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_inventory" model="ir.actions.report">
+        <field name="name">تقرير المخزون</field>
+        <field name="model">dawai.inventory</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dawaee_platform.report_inventory_template</field>
+        <field name="report_file">dawaee_platform.report_inventory_template</field>
+    </record>
+
+    <template id="report_inventory_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page"
+                     style="direction: rtl; text-align: right; font-family: 'Montserrat', 'Amiri', sans-serif;">
+
+                    <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #8a6d1f; padding-bottom: 12px;">
+                        <h2 style="color: #8a6d1f; margin-bottom: 4px; font-weight: 700;">تقرير المخزون الحالي</h2>
+                        <p style="color: #666; font-size: 12px; margin: 0;">
+                            منصة دوائي — الصيدلية:
+                            <span t-esc="pharmacy_name"/>
+                        </p>
+                        <p t-if="low_stock_only"
+                           style="color: #b91c1c; font-size: 11px; margin-top: 4px; font-weight: 700;">
+                            عرض الأصناف ذات المخزون المنخفض فقط
+                        </p>
+                    </div>
+
+                    <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 33%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">عدد الأصناف</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="len(docs)"/>
+                                </div>
+                            </td>
+                            <td style="width: 33%; text-align: center; padding: 10px;">
+                                <div style="font-size: 11px; color: #b91c1c;">أصناف منخفضة المخزون</div>
+                                <div style="font-size: 18px; font-weight: 700; color: #b91c1c;">
+                                    <span t-esc="len(docs.filtered(lambda d: d.is_low_stock))"/>
+                                </div>
+                            </td>
+                            <td style="width: 33%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">إجمالي الكمية المتاحة</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="sum(docs.mapped('qty_available'))"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="table table-sm" style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <thead>
+                            <tr style="background-color: #8a6d1f; color: white;">
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">الدواء</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">الصيدلية</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">الكمية
+                                    الفعلية
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">المحجوزة</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">المتاحة للحجز
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">الحد الأدنى
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">آخر تحديث</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="o">
+                                <tr t-attf-style="background-color: #{'#fde8e8' if o.is_low_stock else ('#f7f3e8' if o_index % 2 == 0 else '#ffffff')};">
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.med_id.med_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.pharm_id.pharm_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center; font-weight: 700;">
+                                        <span t-field="o.qty_available"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center; color: #555;">
+                                        <span t-field="o.qty_reserved"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center; color: #555;">
+                                        <span t-field="o.qty_net"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center; color: #999;">
+                                        <span t-field="o.min_stock_level"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;" dir="ltr">
+                                        <span t-field="o.last_update"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;">
+                                        <span t-if="o.is_low_stock" style="color: #b91c1c; font-weight: 700;">منخفض ⚠
+                                        </span>
+                                        <span t-else="">طبيعي</span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div t-if="not docs" style="text-align: center; padding: 40px; color: #999;">
+                        لا توجد أصناف مطابقة لمعايير البحث المحددة.
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

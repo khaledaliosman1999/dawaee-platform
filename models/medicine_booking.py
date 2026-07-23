@@ -238,8 +238,6 @@ class DawaiMedicineBooking(models.Model):
     @api.constrains('pat_id', 'med_id', 'status')
     def _check_unique_active_booking(self):
         """
-        Python Constraint:
-        UNIQUE(pat_id, med_id) WHERE status = 'active'
         لمنع تكرار الحجز النشط لنفس الدواء من نفس المريض
         """
         for rec in self:

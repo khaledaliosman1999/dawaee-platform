@@ -4,17 +4,12 @@
          مجموعات الأمان — منصة دوائي
          ══════════════════════════════════════════════════
          
-         التصميم الصحيح لأنواع المستخدمين:
+         التصميم لأنواع المستخدمين:
          
          group_dawai_patient    → Portal User   (base.group_portal)
          group_dawai_pharmacist → Internal User  (base.group_user)
          group_dawai_admin      → Internal User  (يرث الصيدلاني)
-         
-         ❌ الخطأ السابق: Admin يرث Patient → يرث Portal
-            هذا يعني Admin = Portal + Internal → تعارض!
-         
-         ✅ الحل: الصيدلاني والمدير لا يرثان Patient مباشرة
-            كل مجموعة ترتبط بنوع مستخدم واحد فقط.
+
          ══════════════════════════════════════════════════ -->
 
     <record id="module_category_dawai" model="ir.module.category">
@@ -61,6 +56,120 @@
         </field>
         <field name="implied_ids"
                eval="[(4, ref('group_dawai_pharmacist'))]"/>
+    </record>
+
+    <!--  لضمان ان الصيدلي لا يري الا المخزون الخاص به   -->
+    <record id="rule_inventory_pharmacist_only" model="ir.rule">
+        <field name="name">Pharmacist Inventory Access</field>
+        <field name="model_id" ref="model_dawai_inventory"/>
+        <field name="domain_force">[('pharm_id', '=', user.pharmacy_id.id)]</field>
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_pharmacist'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+
+    <!--  لضمان ان الصيدلي لا يري الا شحنات التوريد الخاص به   -->
+    <record id="rule_pharmacist_own_inbounds" model="ir.rule">
+        <field name="name">Pharmacist: Own Pharmacy Inbounds Only</field>
+
+        <field name="model_id" ref="model_dawai_stock_inbound"/>
+
+        <field name="domain_force">[('pharm_id', '=', user.pharmacy_id.id)]</field>
+
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_pharmacist'))]"/>
+
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+
+    <!--    المخزون للمسؤول-->
+    <record id="rule_admin_all_inventory" model="ir.rule">
+        <field name="name">Admin: Access All Pharmacies Inventory</field>
+
+        <field name="model_id" ref="model_dawai_inventory"/>
+
+        <field name="domain_force">[(1, '=', 1)]</field>
+
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_admin'))]"/>
+
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+    <!--الحجوزات للصيادلة-->
+    <record id="rule_pharmacist_own_bookings" model="ir.rule">
+        <field name="name">Pharmacist: Own Pharmacy Bookings Only</field>
+
+        <field name="model_id" ref="model_dawai_medicine_booking"/>
+
+        <field name="domain_force">[('pharm_id', '=', user.pharmacy_id.id)]</field>
+
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_pharmacist'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+
+    <!--الحجوزات للمسؤول-->
+    <record id="rule_admin_all_bookings" model="ir.rule">
+        <field name="name">Admin: Access All Bookings</field>
+
+        <field name="model_id" ref="model_dawai_medicine_booking"/>
+
+        <field name="domain_force">[(1, '=', 1)]</field>
+
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_admin'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+    <!--    عمليات الصرف للصيدلية-->
+    <record id="rule_pharmacist_own_dispense" model="ir.rule">
+        <field name="name">Pharmacist: Own Pharmacy Dispense Operations Only</field>
+
+        <field name="model_id" ref="model_dawai_dispensing_transaction"/>
+
+        <field name="domain_force">[('pharm_id', '=', user.pharmacy_id.id)]</field>
+
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_pharmacist'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+    <!--    عمليات الصرف للمسؤول-->
+    <record id="rule_admin_all_dispense" model="ir.rule">
+        <field name="name">Admin: Access All Dispense Operations</field>
+
+        <field name="model_id" ref="model_dawai_dispensing_transaction"/>
+
+        <field name="domain_force">[(1, '=', 1)]</field>
+
+        <field name="groups" eval="[(4, ref('dawaee_platform.group_dawai_admin'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+    <record id="rule_report_wizard_access" model="ir.rule">
+        <field name="name">Access Report Wizard</field>
+        <field name="model_id" ref="model_dispensing_report_wizard"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups"
+               eval="[(4, ref('dawaee_platform.group_dawai_admin')), (4, ref('dawaee_platform.group_dawai_pharmacist'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
     </record>
 
 </odoo>

@@ -143,16 +143,15 @@
         <field name="name">dawai.prescription.list</field>
         <field name="model">dawai.prescription</field>
         <field name="arch" type="xml">
-            <list string="الوصفات الطبية"
-                  decoration-muted="is_valid == False">
+            <list string="الوصفات الطبية" decoration-muted="is_valid == False">
                 <field name="pat_id" string="المريض"/>
-                <field name="med_id" string="الدواء"/>
+                <field name="medicine_ids" string="الأدوية" widget="many2many_tags"/>
                 <field name="doctor_name" string="الطبيب"/>
                 <field name="issue_date" string="تاريخ الإصدار"/>
                 <field name="expiry_date" string="تاريخ الانتهاء"/>
-                <field name="allowed_qty" string="المسموح"/>
-                <field name="qty_dispensed_so_far" string="المصروف"/>
-                <field name="qty_remaining" string="المتبقي"/>
+                <field name="allowed_qty" string="المسموح (مرات)"/>
+                <field name="qty_dispensed_so_far" string="المصروف (مرات)"/>
+                <field name="qty_remaining" string="المتبقي (مرات)"/>
                 <field name="is_valid" string="سارية؟" widget="boolean"/>
             </list>
         </field>
@@ -170,29 +169,40 @@
                         </h1>
                     </div>
                     <group>
-                        <group string="الربط التسلسلي (من الحجز)">
-                            <field name="booking_id" string="الحجز المرتبط"/>
-                            <field name="pat_id" string="المريض" readonly="1"/>
-                            <field name="med_id" string="الدواء" readonly="1"/>
-                            <field name="pharm_id" string="الصيدلية" readonly="1"/>
-                        </group>
-                        <group string="بيانات الطبيب">
+                        <group string="بيانات المريض والطبيب">
+                            <field name="pat_id" string="المريض" options="{'no_create': True}"/>
                             <field name="doctor_name" string="اسم الطبيب"/>
                             <field name="doctor_phone" string="هاتف الطبيب"/>
                         </group>
-                    </group>
-                    <group>
-                        <group string="الكميات">
-                            <field name="allowed_qty" string="الكمية المسموحة شهرياً"/>
-                            <field name="qty_dispensed_so_far" string="المصروف حتى الآن" readonly="1"/>
-                            <field name="qty_remaining" string="المتبقي" readonly="1"/>
-                        </group>
-                        <group string="التواريخ">
-                            <field name="issue_date" string="تاريخ الإصدار"/>
-                            <field name="expiry_date" string="تاريخ الانتهاء"/>
-                            <field name="is_valid" string="سارية؟" readonly="1"/>
+                        <group string="إحصائيات الصرف">
+                            <field name="allowed_qty" string="إجمالي مرات الصرف المسموحة"/>
+                            <field name="qty_dispensed_so_far" string="مرات الصرف الفعلية" readonly="1"/>
+                            <field name="qty_remaining" string="المرات المتبقية" readonly="1"/>
                         </group>
                     </group>
+
+                    <notebook>
+                        <page string="الأدوية الموصوفة" name="medicines_page">
+                            <field name="medicine_ids">
+                                <list>
+                                    <field name="med_name" string="الاسم التجاري"/>
+                                    <field name="scientific_name" string="الاسم العلمي"/>
+                                    <field name="med_category" string="التصنيف"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="التواريخ والصلاحية" name="dates_page">
+                            <group>
+                                <group>
+                                    <field name="issue_date" string="تاريخ الإصدار"/>
+                                    <field name="expiry_date" string="تاريخ الانتهاء"/>
+                                </group>
+                                <group>
+                                    <field name="is_valid" string="سارية؟" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>
@@ -205,7 +215,7 @@
         <field name="arch" type="xml">
             <search string="بحث في الوصفات">
                 <field name="pat_id" string="المريض"/>
-                <field name="med_id" string="الدواء"/>
+                <field name="medicine_ids" string="الدواء"/>
                 <field name="doctor_name" string="الطبيب"/>
                 <separator/>
                 <filter name="valid" string="سارية"
@@ -215,8 +225,6 @@
                 <group expand="0" string="تجميع حسب">
                     <filter name="group_patient" string="المريض"
                             context="{'group_by':'pat_id'}"/>
-                    <filter name="group_medicine" string="الدواء"
-                            context="{'group_by':'med_id'}"/>
                 </group>
             </search>
         </field>
@@ -229,6 +237,7 @@
         <field name="search_view_id" ref="view_dawai_prescription_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">لا توجد وصفات مسجلة بعد</p>
+            <p>قم بإنشاء وصفة طبية جديدة لمرضاك، أضف الأدوية المسموحة، وتابع تواريخ الصلاحية ومرات الصرف.</p>
         </field>
     </record>
 
@@ -246,7 +255,6 @@
                 <field name="med_id" string="الدواء"/>
                 <field name="pharm_id" string="الصيدلية"/>
                 <field name="qty_dispensed" string="الكمية"/>
-                <field name="unit_price" string="سعر الوحدة"/>
                 <field name="total_price" string="الإجمالي"/>
                 <field name="presc_id" string="الوصفة" optional="show"/>
             </list>
@@ -264,16 +272,24 @@
                             <field name="display_name" readonly="1"/>
                         </h1>
                     </div>
+
+                    <field name="requires_prescription" invisible="1"/>
+
                     <group>
                         <group string="الربط التسلسلي (من الحجز)">
-                            <field name="booking_id" string="رقم الحجز"
-                                   domain="[('status','=','active')]"/>
+                            <field name="booking_id" string="رقم الحجز" domain="[('status','=','active')]"/>
                             <field name="pat_id" string="المريض" readonly="1"/>
                             <field name="med_id" string="الدواء" readonly="1"/>
                             <field name="pharm_id" string="الصيدلية" readonly="1"/>
                         </group>
                         <group string="بيانات الصرف">
-                            <field name="presc_id" string="الوصفة الطبية (اختياري)"/>
+                            <field name="presc_id"
+                                   string="الوصفة الطبية"
+                                   domain="[('pat_id', '=', pat_id)]"
+                                   context="{'default_pat_id': pat_id}"
+                                   required="requires_prescription == True"
+                                   options="{'no_quick_create': True}"
+                                   help="مطلوبة إلزامياً إذا كان الدواء يحتاج وصفة."/>
                             <field name="qty_dispensed" string="الكمية المصروفة"/>
                             <field name="dispense_date" string="وقت الصرف" readonly="1"/>
                         </group>
@@ -300,17 +316,12 @@
                 <field name="med_id" string="الدواء"/>
                 <field name="pharm_id" string="الصيدلية"/>
                 <separator/>
-                <filter name="has_presc" string="بوصفة"
-                        domain="[('presc_id','!=',False)]"/>
-                <filter name="no_presc" string="بدون وصفة"
-                        domain="[('presc_id','=',False)]"/>
+                <filter name="has_presc" string="بوصفة" domain="[('presc_id','!=',False)]"/>
+                <filter name="no_presc" string="بدون وصفة" domain="[('presc_id','=',False)]"/>
                 <group expand="0" string="تجميع حسب">
-                    <filter name="group_pharmacy" string="الصيدلية"
-                            context="{'group_by':'pharm_id'}"/>
-                    <filter name="group_medicine" string="الدواء"
-                            context="{'group_by':'med_id'}"/>
-                    <filter name="group_month" string="الشهر"
-                            context="{'group_by':'dispense_date:month'}"/>
+                    <filter name="group_pharmacy" string="الصيدلية" context="{'group_by':'pharm_id'}"/>
+                    <filter name="group_medicine" string="الدواء" context="{'group_by':'med_id'}"/>
+                    <filter name="group_month" string="الشهر" context="{'group_by':'dispense_date:month'}"/>
                 </group>
             </search>
         </field>
@@ -325,5 +336,4 @@
             <p class="o_view_nocontent_smiling_face">لا توجد عمليات صرف بعد</p>
         </field>
     </record>
-
 </odoo>

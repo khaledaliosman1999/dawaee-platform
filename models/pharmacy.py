@@ -3,8 +3,9 @@
 # يمثل كينونة الجهة الموفرة للخدمة
 # ============================================================
 
-from odoo import models, fields
-
+import re
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 class DawaiPharmacy(models.Model):
     _name = 'dawai.pharmacy'
@@ -37,7 +38,7 @@ class DawaiPharmacy(models.Model):
     )
     pharmacy_phone = fields.Char(
         string='رقم التواصل',
-        size=15,
+        size=20,
     )
     address = fields.Text(
         string='العنوان',
@@ -97,6 +98,20 @@ class DawaiPharmacy(models.Model):
             'domain': [('pharm_id', '=', self.id)],
             'context': {'default_pharm_id': self.id},
         }
+
+    # ─── Constraints ──────────────────────────────────────
+    @api.constrains('pharmacy_phone')
+    def _check_phone(self):
+        phone_regex = r'^\+?\d{9,15}$'
+        for rec in self:
+            if rec.pharmacy_phone and not re.match(phone_regex, rec.pharmacy_phone):
+                raise ValidationError('رقم هاتف الصيدلية يجب أن يتكون من أرقام فقط وبطول صحيح.')
+
+    @api.constrains('map_url')
+    def _check_map_url(self):
+        for rec in self:
+            if rec.map_url and not rec.map_url.startswith(('http://', 'https://')):
+                raise ValidationError('رابط خريطة Google يجب أن يكون رابطاً صحيحاً يبدأ بـ http:// أو https://')
 
     # ─── SQL Constraints ──────────────────────────────────
     _sql_constraints = [

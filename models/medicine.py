@@ -31,13 +31,13 @@ class DawaiMedicine(models.Model):
     )
     med_category = fields.Selection(
         selection=[
-            ('diabetes',   'سكري'),
-            ('pressure',   'ضغط دم'),
-            ('heart',      'قلب'),
-            ('asthma',     'ربو'),
-            ('rare',       'دواء نادر'),
-            ('emergency',  'طوارئ / مضاد سموم'),
-            ('other',      'أخرى'),
+            ('diabetes','سكري'),
+            ('pressure','ضغط دم'),
+            ('heart','قلب'),
+            ('asthma','ربو'),
+            ('rare','دواء نادر'),
+            ('emergency','طوارئ / مضاد سموم'),
+            ('other','أخرى'),
         ],
         string='تصنيف الدواء',
         tracking=True,

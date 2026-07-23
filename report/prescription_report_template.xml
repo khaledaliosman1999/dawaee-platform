@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_prescription" model="ir.actions.report">
+        <field name="name">تقرير الوصفات الطبية</field>
+        <field name="model">dawai.prescription</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dawaee_platform.report_prescription_template</field>
+        <field name="report_file">dawaee_platform.report_prescription_template</field>
+    </record>
+
+    <template id="report_prescription_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page"
+                     style="direction: rtl; text-align: right; font-family: 'Montserrat', 'Amiri', sans-serif;">
+
+                    <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #8a6d1f; padding-bottom: 12px;">
+                        <h2 style="color: #8a6d1f; margin-bottom: 4px; font-weight: 700;">تقرير الوصفات الطبية</h2>
+                        <p style="color: #666; font-size: 12px; margin: 0;">
+                            منصة دوائي — متابعة الالتزام بمواعيد الصرف
+                        </p>
+                        <p t-if="low_remaining_only"
+                           style="color: #b91c1c; font-size: 11px; margin-top: 4px; font-weight: 700;">
+                            عرض الوصفات القريبة من الاستنفاد فقط
+                        </p>
+                    </div>
+
+                    <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">عدد الوصفات</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="len(docs)"/>
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: center; padding: 10px;">
+                                <div style="font-size: 11px; color: #b91c1c;">وصفات قريبة من الاستنفاد</div>
+                                <div style="font-size: 18px; font-weight: 700; color: #b91c1c;">
+                                    <span t-esc="len(docs.filtered(lambda d: d.qty_remaining &lt;= 1))"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="table table-sm" style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <thead>
+                            <tr style="background-color: #8a6d1f; color: white;">
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">المريض</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f;">الطبيب</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">تاريخ الإصدار
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">تاريخ
+                                    الانتهاء
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">المسموح
+                                    شهرياً
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">المرصوف
+                                    فعلياً
+                                </th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">المتبقي</th>
+                                <th style="padding: 7px; border: 1px solid #8a6d1f; text-align: center;">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="o">
+                                <tr t-attf-style="background-color: #{'#fde8e8' if o.qty_remaining &lt;= 1 else ('#f7f3e8' if o_index % 2 == 0 else '#ffffff')};">
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.pat_id.pat_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd;">
+                                        <span t-field="o.doctor_name"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;" dir="ltr">
+                                        <span t-field="o.issue_date"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;" dir="ltr">
+                                        <span t-field="o.expiry_date"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;">
+                                        <span t-field="o.allowed_qty"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center; color: #555;">
+                                        <span t-field="o.qty_dispensed_so_far"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center; font-weight: 700;">
+                                        <span t-field="o.qty_remaining"/>
+                                    </td>
+                                    <td style="padding: 5px 7px; border: 1px solid #ddd; text-align: center;">
+                                        <span t-if="o.is_valid" style="color: #15803d; font-weight: 700;">سارية</span>
+                                        <span t-else="" style="color: #b91c1c; font-weight: 700;">منتهية</span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div t-if="not docs" style="text-align: center; padding: 40px; color: #999;">
+                        لا توجد وصفات مطابقة لمعايير البحث المحددة.
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

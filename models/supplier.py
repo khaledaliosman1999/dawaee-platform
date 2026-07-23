@@ -36,7 +36,7 @@ class DawaiSupplier(models.Model):
     )
     phone = fields.Char(
         string='رقم الهاتف',
-        size=15,
+        size=20,
     )
 
     email = fields.Char(
@@ -75,13 +75,6 @@ class DawaiSupplier(models.Model):
         }
 
     # ─── Constraints ──────────────────────────────────────
-    # @api.constrains('email')
-    # def _check_email(self):
-    #     for rec in self:
-    #         if rec.email and '@' not in rec.email:
-    #             raise ValidationError('صيغة البريد الإلكتروني غير صحيحة!')
-
-    # ─── Constraints ──────────────────────────────────────
     @api.constrains('email')
     def _check_email(self):
         # تعريف التعبير النمطي للبريد الإلكتروني القياسي
@@ -93,3 +86,15 @@ class DawaiSupplier(models.Model):
                 if not re.match(email_regex, rec.email):
                     raise ValidationError(
                         'صيغة البريد الإلكتروني غير صحيحة! يرجى التأكد من كتابته بدون مسافات وبصيغة سليمة (مثال: info@company.com).')
+
+    @api.constrains('phone')
+    def _check_phone(self):
+        """
+        التحقق من أن رقم الهاتف يحتوي على أرقام فقط (ويمكن أن يبدأ بـ +).
+        ويمكنك تعديل {9,15} لتناسب عدد أرقام هواتف محدد (مثلاً {11,11} إذا كان حصراً 11 رقم).
+        """
+        phone_regex = r'^\+?\d{9,15}$'
+        for rec in self:
+            if rec.phone:
+                if not re.match(phone_regex, rec.phone):
+                    raise ValidationError('رقم الهاتف يجب أن يتكون من أرقام فقط (يسمح بإضافة + في البداية) وبطول بين 9 و 15 رقماً.')

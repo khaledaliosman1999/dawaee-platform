@@ -8,13 +8,17 @@
         <field name="name">dawai.supplier.list</field>
         <field name="model">dawai.supplier</field>
         <field name="arch" type="xml">
-            <list string="الموردون">
+            <list string="الموردون" decoration-muted="active == False">
                 <field name="supplier_name" string="الاسم"/>
-                <field name="supplier_type" string="النوع" widget="badge"/>
+                <field name="supplier_type" string="النوع" widget="badge"
+                       decoration-info="supplier_type == 'government'"
+                       decoration-warning="supplier_type == 'private'"
+                       decoration-success="supplier_type == 'international'"/>
                 <field name="contact_name"  string="جهة الاتصال"/>
-                <field name="phone"         string="الهاتف"/>
-                <field name="email"         string="البريد"/>
+                <field name="phone" string="الهاتف" widget="phone"/>
+                <field name="email" string="البريد" widget="email"/>
                 <field name="inbound_count" string="عدد الشحنات"/>
+                <field name="active" column_invisible="1"/>
             </list>
         </field>
     </record>
@@ -25,6 +29,8 @@
         <field name="arch" type="xml">
             <form string="بيانات المورد">
                 <sheet>
+                    <widget name="web_ribbon" title="مؤرشف" bg_color="text-bg-danger" invisible="active"/>
+
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_inbound" type="object"
                                 class="oe_stat_button" icon="fa-truck">
@@ -37,17 +43,17 @@
                     <group>
                         <group string="بيانات التصنيف">
                             <field name="supplier_type" string="نوع المورد"/>
-                            <field name="active"        string="نشط"/>
+                            <field name="active" string="نشط" widget="boolean_toggle"/>
                         </group>
                         <group string="بيانات التواصل">
                             <field name="contact_name" string="الشخص المسؤول"/>
-                            <field name="phone"        string="الهاتف"/>
-                            <field name="email"        string="البريد الإلكتروني"/>
+                            <field name="phone" string="الهاتف" widget="phone"/>
+                            <field name="email" string="البريد الإلكتروني" widget="email"/>
                         </group>
                     </group>
                     <group string="العنوان">
                         <field name="address" string="العنوان الكامل" nolabel="1"
-                               placeholder="العنوان الكامل للمورد..."/>
+                               placeholder="المدينة، الشارع، المبنى..."/>
                     </group>
                 </sheet>
                 <chatter/>
@@ -76,6 +82,10 @@
                     <filter name="group_supplier_type" string="نوع المورد"
                             context="{'group_by':'supplier_type'}"/>
                 </group>
+
+                <searchpanel>
+                    <field name="supplier_type" string="نوع المورد" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -86,7 +96,8 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_dawai_supplier_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">أضف أول مورد في النظام</p>
+            <p class="o_view_nocontent_smiling_face">أضف أول مورد لشبكة دوائي</p>
+            <p>قم بإضافة شركات الأدوية والإمدادات الطبية لتتبع مصادر الشحنات بسهولة.</p>
         </field>
     </record>
 
@@ -100,11 +111,11 @@
             <list string="الصيدليات" decoration-muted="active == False">
                 <field name="pharm_name"      string="الصيدلية"/>
                 <field name="license_no"      string="رقم الترخيص"/>
-                <field name="pharmacy_phone"  string="الهاتف"/>
-                <field name="user_id"         string="المسؤول"/>
+                <field name="pharmacy_phone" string="الهاتف" widget="phone"/>
+                <field name="user_id" string="المسؤول" widget="many2one_avatar"/>
                 <field name="inventory_count" string="الأدوية"/>
                 <field name="booking_count"   string="حجوزات نشطة"/>
-                <field name="active"          string="نشطة"/>
+                <field name="active" column_invisible="1"/>
             </list>
         </field>
     </record>
@@ -115,6 +126,8 @@
         <field name="arch" type="xml">
             <form string="بيانات الصيدلية">
                 <sheet>
+                    <widget name="web_ribbon" title="مؤرشفة" bg_color="text-bg-danger" invisible="active"/>
+
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_inventory" type="object"
                                 class="oe_stat_button" icon="fa-cubes">
@@ -131,17 +144,17 @@
                     <group>
                         <group string="بيانات الترخيص">
                             <field name="license_no" string="رقم الترخيص"/>
-                            <field name="user_id"    string="حساب المسؤول"/>
-                            <field name="active"     string="نشطة في النظام"/>
+                            <field name="user_id" string="حساب المسؤول" widget="many2one_avatar"/>
+                            <field name="active" string="نشطة في النظام" widget="boolean_toggle"/>
                         </group>
                         <group string="بيانات التواصل">
-                            <field name="pharmacy_phone" string="رقم التواصل"/>
-                            <field name="map_url"        string="رابط الخريطة"/>
+                            <field name="pharmacy_phone" string="رقم التواصل" widget="phone"/>
+                            <field name="map_url" string="رابط الخريطة" widget="url" text="فتح في Google Maps"/>
                         </group>
                     </group>
                     <group string="العنوان">
                         <field name="address" string="العنوان الكامل" nolabel="1"
-                               placeholder="العنوان التفصيلي للصيدلية..."/>
+                               placeholder="المدينة، الحي، الشارع، أقرب معلم..."/>
                     </group>
                 </sheet>
                 <chatter/>
@@ -156,12 +169,15 @@
             <search string="بحث في الصيدليات">
                 <field name="pharm_name"  string="الصيدلية"/>
                 <field name="license_no"  string="رقم الترخيص"/>
+                <field name="user_id" string="حساب المسؤول"/>
                 <separator/>
                 <filter name="active_only" string="نشطة فقط"
                         domain="[('active','=',True)]"/>
                 <filter name="archived"    string="مؤرشفة"
                         domain="[('active','=',False)]"/>
                 <group expand="0" string="تجميع حسب">
+                    <filter name="group_user" string="حساب المسؤول"
+                            context="{'group_by':'user_id'}"/>
                     <filter name="group_active" string="الحالة"
                             context="{'group_by':'active'}"/>
                 </group>
@@ -175,10 +191,10 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_dawai_pharmacy_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">أضف أول صيدلية في النظام</p>
+            <p class="o_view_nocontent_smiling_face">أضف أول صيدلية إلى شبكة دوائي</p>
+            <p>قم بتسجيل بيانات الصيدليات، ربطها بحسابات مديريها، وتتبع مخزونها وحجوزاتها من مكان واحد.</p>
         </field>
     </record>
-
 <!-- ══════════════════════════════════════════════
      PATIENT
 ══════════════════════════════════════════════ -->
@@ -186,16 +202,20 @@
         <field name="name">dawai.patient.list</field>
         <field name="model">dawai.patient</field>
         <field name="arch" type="xml">
-            <list string="المرضى">
+            <list string="المرضى" decoration-muted="active == False">
                 <field name="pat_name"             string="الاسم الكامل"/>
-                <field name="national_id"           string="الرقم الوطني"/>
-                <field name="disease_type"          string="المرض" widget="badge"/>
-                <field name="contact_info"          string="الهاتف"/>
-                <field name="email"                 string="البريد"/>
-                <field name="booking_count"         string="الحجوزات"/>
-                <field name="active_booking_count"  string="النشطة"/>
-                <field name="user_id"               string="حساب المنصة"/>
-                <field name="active"                string="نشط"/>
+                <field name="national_id" string="الرقم الوطني"/>
+                <field name="disease_type" string="المرض" widget="badge"
+                       decoration-info="disease_type == 'diabetes'"
+                       decoration-danger="disease_type == 'heart'"
+                       decoration-warning="disease_type == 'pressure'"
+                       decoration-success="disease_type == 'asthma'"/>
+                <field name="contact_info" string="الهاتف" widget="phone"/>
+                <field name="email" string="البريد" widget="email"/>
+                <field name="booking_count" string="الحجوزات"/>
+                <field name="active_booking_count" string="النشطة"/>
+                <field name="user_id" string="حساب المنصة" widget="many2one_avatar"/>
+                <field name="active" column_invisible="1"/>
             </list>
         </field>
     </record>
@@ -206,6 +226,8 @@
         <field name="arch" type="xml">
             <form string="بيانات المريض">
                 <sheet>
+                    <widget name="web_ribbon" title="مؤرشف" bg_color="text-bg-danger" invisible="active"/>
+
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_bookings" type="object"
                                 class="oe_stat_button" icon="fa-calendar-check-o">
@@ -222,12 +244,13 @@
                         <group string="البيانات الشخصية">
                             <field name="national_id"  string="الرقم الوطني"/>
                             <field name="disease_type" string="نوع المرض"/>
-                            <field name="active"       string="حساب نشط"/>
+                            <field name="active" string="حساب نشط" widget="boolean_toggle"/>
                         </group>
                         <group string="بيانات التواصل">
-                            <field name="contact_info" string="رقم الهاتف"/>
-                            <field name="email"        string="البريد الإلكتروني"/>
-                            <field name="user_id"      string="حساب المنصة (Portal)"/>
+                            <field name="contact_info" string="رقم الهاتف" widget="phone"/>
+                            <field name="email" string="البريد الإلكتروني" widget="email"/>
+                            <field name="user_id" string="حساب المنصة (Portal)"
+                                   widget="many2one_avatar" options="{'no_create': True}"/>
                         </group>
                     </group>
                 </sheet>
@@ -250,21 +273,16 @@
                 <filter name="has_account" string="لديه حساب"
                         domain="[('user_id','!=',False)]"/>
                 <separator/>
-                <filter name="diabetes" string="سكري"
-                        domain="[('disease_type','=','diabetes')]"/>
-                <filter name="pressure" string="ضغط دم"
-                        domain="[('disease_type','=','pressure')]"/>
-                <filter name="heart"    string="قلب"
-                        domain="[('disease_type','=','heart')]"/>
-                <filter name="asthma"   string="ربو"
-                        domain="[('disease_type','=','asthma')]"/>
-                <separator/>
                 <filter name="archived" string="مؤرشف"
                         domain="[('active','=',False)]"/>
                 <group expand="0" string="تجميع حسب">
                     <filter name="group_disease" string="نوع المرض"
                             context="{'group_by':'disease_type'}"/>
                 </group>
+
+                <searchpanel>
+                    <field name="disease_type" string="تصنيف الأمراض" icon="fa-heartbeat" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -275,7 +293,8 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_dawai_patient_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">أضف أول مريض في النظام</p>
+            <p class="o_view_nocontent_smiling_face">أضف أول مريض في منصة دوائي</p>
+            <p>يتم تسجيل المرضى هنا إما يدوياً بواسطة الإدارة، أو تلقائياً عند قيامهم بالتسجيل والحجز عبر المنصة.</p>
         </field>
     </record>
 

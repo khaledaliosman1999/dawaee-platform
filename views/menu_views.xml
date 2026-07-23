@@ -82,28 +82,45 @@
               sequence="30"/>
 
     <!-- ─── 4. التقارير ─── -->
+    <!-- القائمة الأب يجب أن تسمح للصيادلة برؤيتها أيضاً -->
     <menuitem id="menu_dawai_reports_root"
               name="التقارير"
               parent="menu_dawai_root"
               sequence="40"
-              groups="dawai_platform.group_dawai_admin"/>
+              groups="dawai_platform.group_dawai_admin,dawai_platform.group_dawai_pharmacist"/>
 
-    <menuitem id="menu_dawai_report_dispensing"
-              name="تقرير عمليات الصرف"
+    <!-- قائمة التقرير المخصص (مرة واحدة فقط) -->
+    <menuitem id="menu_report_wizard"
+              name="تقارير الصرف"
               parent="menu_dawai_reports_root"
-              action="action_dawai_dispensing"
-              sequence="10"/>
+              action="action_dispensing_report_wizard"
+              groups="dawaee_platform.group_dawai_admin,dawaee_platform.group_dawai_pharmacist"/>
 
-    <menuitem id="menu_dawai_report_inventory"
-              name="تقرير المخزون"
+    <menuitem id="menu_medicine_demand_report"
+              name="تقرير طلب الأدوية"
+              action="action_medicine_demand_wizard"
               parent="menu_dawai_reports_root"
-              action="action_dawai_inventory"
-              sequence="20"/>
+              sequence="20"
+              groups="dawaee_platform.group_dawai_admin,dawaee_platform.group_dawai_pharmacist"/>
 
-    <menuitem id="menu_dawai_report_bookings"
-              name="تقرير الحجوزات"
+    <menuitem id="menu_inventory_report"
+              name="تقرير المخزون الحالي"
+              action="action_inventory_report_wizard"
               parent="menu_dawai_reports_root"
-              action="action_dawai_booking"
-              sequence="30"/>
+              sequence="30"
+              groups="dawaee_platform.group_dawai_admin,dawaee_platform.group_dawai_pharmacist"/>
 
+    <menuitem id="menu_expired_bookings_report"
+              name="تقرير الحجوزات الفاقدة"
+              action="action_expired_bookings_wizard"
+              parent="menu_dawai_reports_root"
+              sequence="40"
+              groups="dawaee_platform.group_dawai_admin,dawaee_platform.group_dawai_pharmacist"/>
+
+    <menuitem id="menu_prescription_report"
+              name="تقرير الوصفات الطبية"
+              action="action_prescription_report_wizard"
+              parent="menu_dawai_reports_root"
+              sequence="50"
+              groups="dawaee_platform.group_dawai_admin,dawaee_platform.group_dawai_pharmacist"/>
 </odoo>

@@ -48,8 +48,13 @@
                     </div>
                     <group>
                         <group string="بيانات الشحنة">
+                            <field name="current_user_pharmacy_id" invisible="1"/>
+
                             <field name="pharm_id"    string="الصيدلية المستلِمة"
+                                   domain="[('id', '=', current_user_pharmacy_id)]"
+                                   options="{'no_create': True, 'no_open': True}"
                                    readonly="state == 'done'"/>
+
                             <field name="supplier_id" string="المورد"
                                    readonly="state == 'done'"/>
                             <field name="med_id"      string="الدواء"
@@ -146,8 +151,8 @@
                     </div>
                     <group>
                         <group string="بيانات الربط">
-                            <field name="pharm_id"    string="الصيدلية"/>
-                            <field name="med_id"      string="الدواء"/>
+                            <field name="pharm_id"    string="الصيدلية" readonly="1"/>
+                            <field name="med_id"      string="الدواء" readonly="1"/>
                             <field name="unit_price" string="السعر (SDG)"/>
                             <field name="supplier_id" string="المورد"/>
                             <field name="batch_no"    string="رقم الدفعة"/>

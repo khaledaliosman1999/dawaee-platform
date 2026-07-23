@@ -7,7 +7,7 @@
 # - عند الضغط على "احجز" يُطلب من الزائر تسجيل الدخول
 # - user_id يُملأ عند إنشاء الحساب ويبقى ثابتاً (nullable)
 # ============================================================
-
+import re
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
@@ -29,6 +29,7 @@ class DawaiPatient(models.Model):
     national_id = fields.Char(
         string='الرقم الوطني',
         size=11,
+        required=True,
         tracking=True,
         help='الرقم الوطني السوداني (11 رقم)',
     )
@@ -47,6 +48,7 @@ class DawaiPatient(models.Model):
     contact_info = fields.Char(
         string='رقم الهاتف الأساسي',
         size=15,
+        required=True,
     )
     email = fields.Char(
         string='البريد الإلكتروني',
@@ -113,6 +115,15 @@ class DawaiPatient(models.Model):
             if rec.national_id and len(rec.national_id) != 11:
                 raise ValidationError('الرقم الوطني يجب أن يكون 11 رقماً بالضبط!')
 
+    @api.constrains('contact_info')
+    def _check_phone(self):
+        # التحقق من أن رقم الهاتف يتكون من 10 رقماً بدقة ليتوافق مع معايير المنصة
+        phone_regex = r'^\d{10}$'
+        for rec in self:
+            if rec.contact_info and not re.match(phone_regex, rec.contact_info):
+                raise ValidationError('رقم الهاتف يجب أن يتكون من 10 رقماً بالضبط.')
+
+    @api.constrains('email')
     def _check_email(self):
         # تعريف التعبير النمطي للبريد الإلكتروني القياسي
         email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
@@ -120,7 +131,7 @@ class DawaiPatient(models.Model):
         for rec in self:
             if rec.email:  # نتحقق فقط إذا كان الحقل غير فارغ
                 # استخدام re.match للتحقق من تطابق النص مع النمط
-                if not rec.match(email_regex, rec.email):
+                if not re.match(email_regex, rec.email):
                     raise ValidationError(
                         'صيغة البريد الإلكتروني غير صحيحة! يرجى التأكد من كتابته بدون مسافات وبصيغة سليمة (مثال: info@company.com).')
 

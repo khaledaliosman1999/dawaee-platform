@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_medicine_demand" model="ir.actions.report">
+        <field name="name">تقرير طلب الأدوية</field>
+        <field name="model">medicine.demand.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dawaee_platform.report_medicine_demand_template</field>
+        <field name="report_file">dawaee_platform.report_medicine_demand_template</field>
+    </record>
+
+    <template id="report_medicine_demand_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page"
+                     style="direction: rtl; text-align: right; font-family: 'Montserrat', 'Amiri', sans-serif;">
+
+                    <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #8a6d1f; padding-bottom: 12px;">
+                        <h2 style="color: #8a6d1f; margin-bottom: 4px; font-weight: 700;">
+                            <span t-if="order_type == 'most'">تقرير الأدوية الأكثر طلباً</span>
+                            <span t-else="">تقرير الأدوية الأقل طلباً</span>
+                        </h2>
+                        <p style="color: #666; font-size: 12px; margin: 0;">
+                            منصة دوائي — الصيدلية:
+                            <span t-esc="pharmacy_name"/>
+                        </p>
+                        <p style="color: #999; font-size: 10px; margin-top: 4px;" dir="ltr">
+                            <span t-if="date_start" t-esc="date_start"/>
+                            <span t-if="date_start and date_end">—</span>
+                            <span t-if="date_end" t-esc="date_end"/>
+                        </p>
+                    </div>
+
+                    <table class="table table-sm" style="width: 100%; border-collapse: collapse; font-size: 11.5px;">
+                        <thead>
+                            <tr style="background-color: #8a6d1f; color: white;">
+                                <th style="padding: 8px; border: 1px solid #8a6d1f; text-align: center; width: 8%;">
+                                    الترتيب
+                                </th>
+                                <th style="padding: 8px; border: 1px solid #8a6d1f;">اسم الدواء</th>
+                                <th style="padding: 8px; border: 1px solid #8a6d1f; text-align: center;">عدد العمليات
+                                </th>
+                                <th style="padding: 8px; border: 1px solid #8a6d1f; text-align: center;">إجمالي الكمية
+                                    المصروفة
+                                </th>
+                                <th style="padding: 8px; border: 1px solid #8a6d1f; text-align: left;">إجمالي القيمة
+                                    (SDG)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="lines" t-as="line">
+                                <tr t-attf-style="background-color: #{'#f7f3e8' if line_index % 2 == 0 else '#ffffff'};">
+                                    <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center; font-weight: 700;">
+                                        <span t-esc="line_index + 1"/>
+                                    </td>
+                                    <td style="padding: 6px 8px; border: 1px solid #ddd;">
+                                        <span t-esc="line['med_name']"/>
+                                    </td>
+                                    <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center; color: #555;">
+                                        <span t-esc="line['transactions_count']"/>
+                                    </td>
+                                    <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center;">
+                                        <span t-esc="line['qty_total']"/>
+                                    </td>
+                                    <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: left; font-weight: 600;"
+                                        dir="ltr">
+                                        <span t-esc="'{:,.2f}'.format(line['total_price'])"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div t-if="not lines" style="text-align: center; padding: 40px; color: #999;">
+                        لا توجد بيانات صرف مطابقة لمعايير البحث المحددة.
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

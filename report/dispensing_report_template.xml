@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_dispensing" model="ir.actions.report">
+        <field name="name">تقرير الصرف</field>
+        <field name="model">dawai.dispensing.transaction</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">dawaee_platform.report_dispensing_template</field>
+        <field name="report_file">dawaee_platform.report_dispensing_template</field>
+    </record>
+
+    <template id="report_dispensing_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page"
+                     style="direction: rtl; text-align: right; font-family: 'Montserrat', 'Amiri', sans-serif; position: relative; min-height: 900px;">
+
+                    <!-- ترويسة التقرير -->
+                    <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #8a6d1f; padding-bottom: 12px;">
+                        <h2 style="color: #8a6d1f; margin-bottom: 4px; font-weight: 700;">تقرير عمليات الصرف</h2>
+                        <p style="color: #666; font-size: 12px; margin: 0;">
+                            منصة دوائي — إدارة الأدوية المزمنة والنادرة
+                        </p>
+                        <p style="color: #999; font-size: 10px; margin-top: 4px;">
+                            تاريخ إصدار التقرير:
+                            <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                        </p>
+                    </div>
+
+                    <!-- شريط الملخص -->
+                    <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 33%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">الإجمالي المالي (SDG)</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="'{:,.2f}'.format(sum(docs.mapped('total_price')))"/>
+                                </div>
+                            </td>
+                            <td style="width: 33%; text-align: center; padding: 10px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">إجمالي الكمية</div>
+                                <div style="font-size: 18px; font-weight: 700; color: #555;">
+                                    <span t-esc="sum(docs.mapped('qty_dispensed'))"/>
+                                </div>
+                            </td>
+                            <td style="width: 33%; text-align: center; padding: 10px; background-color: #f7f3e8; border-radius: 4px;">
+                                <div style="font-size: 11px; color: #8a6d1f;">عدد العمليات</div>
+                                <div style="font-size: 18px; font-weight: 700;">
+                                    <span t-esc="len(docs)"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- محتوى التقرير: تجميع حسب الصيدلية لو أكتر من صيدلية واحدة موجودة -->
+                    <t t-set="pharmacies" t-value="docs.mapped('pharm_id')"/>
+
+                    <t t-if="len(pharmacies) &gt; 1">
+                        <!-- عرض مُجمّع: كل صيدلية في قسم منفصل -->
+                        <t t-foreach="pharmacies" t-as="pharmacy">
+                            <t t-set="pharmacy_docs" t-value="docs.filtered(lambda d: d.pharm_id.id == pharmacy.id)"/>
+                            <table style="width: 100%; background-color: #8a6d1f; margin-top: 18px; margin-bottom: 0; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 10px; color: white; font-weight: 700; font-size: 14px; text-align: right;">
+                                        <span t-field="pharmacy.pharm_name"/>
+                                    </td>
+                                    <td style="padding: 8px 10px; color: #f0e6c8; font-size: 11px; text-align: left; white-space: nowrap;"
+                                        dir="ltr">
+                                        <span t-esc="len(pharmacy_docs)"/>
+                                        عملية —
+                                        <span t-esc="'{:,.2f}'.format(sum(pharmacy_docs.mapped('total_price')))"/>
+                                        SDG
+                                    </td>
+                                </tr>
+                            </table>
+                            <table class="table table-sm"
+                                   style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px;">
+                                <thead>
+                                    <tr style="background-color: #e8ddc0;">
+                                        <th style="padding: 6px; border: 1px solid #ccc;">التاريخ والوقت</th>
+                                        <th style="padding: 6px; border: 1px solid #ccc;">المريض</th>
+                                        <th style="padding: 6px; border: 1px solid #ccc;">الدواء</th>
+                                        <th style="padding: 6px; border: 1px solid #ccc; text-align: center;">الكمية
+                                        </th>
+                                        <th style="padding: 6px; border: 1px solid #ccc; text-align: left;">الإجمالي
+                                            (SDG)
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="pharmacy_docs" t-as="o">
+                                        <tr t-attf-style="background-color: #{'#f7f3e8' if o_index % 2 == 0 else '#ffffff'};">
+                                            <td style="padding: 5px 8px; border: 1px solid #ddd;">
+                                                <span t-field="o.dispense_date"/>
+                                            </td>
+                                            <td style="padding: 5px 8px; border: 1px solid #ddd;">
+                                                <span t-field="o.pat_id.pat_name"/>
+                                            </td>
+                                            <td style="padding: 5px 8px; border: 1px solid #ddd;">
+                                                <span t-field="o.med_id.med_name"/>
+                                            </td>
+                                            <td style="padding: 5px 8px; border: 1px solid #ddd; text-align: center; color: #555;">
+                                                <span t-field="o.qty_dispensed"/>
+                                            </td>
+                                            <td style="padding: 5px 8px; border: 1px solid #ddd; text-align: left; font-weight: 600;">
+                                                <span t-esc="'{:,.2f}'.format(o.total_price)"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                    </t>
+
+                    <t t-else="">
+                        <!-- عرض عادي: صيدلية واحدة فقط -->
+                        <table class="table table-sm"
+                               style="width: 100%; border-collapse: collapse; font-size: 11.5px;">
+                            <thead>
+                                <tr style="background-color: #8a6d1f; color: white;">
+                                    <th style="padding: 8px; border: 1px solid #8a6d1f;">التاريخ والوقت</th>
+                                    <th style="padding: 8px; border: 1px solid #8a6d1f;">الصيدلية</th>
+                                    <th style="padding: 8px; border: 1px solid #8a6d1f;">المريض</th>
+                                    <th style="padding: 8px; border: 1px solid #8a6d1f;">الدواء</th>
+                                    <th style="padding: 8px; border: 1px solid #8a6d1f; text-align: center;">الكمية</th>
+                                    <th style="padding: 8px; border: 1px solid #8a6d1f; text-align: left;">الإجمالي
+                                        (SDG)
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="docs" t-as="o">
+                                    <tr t-attf-style="background-color: #{'#f7f3e8' if o_index % 2 == 0 else '#ffffff'};">
+                                        <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center;"
+                                            dir="ltr">
+                                            <span t-field="o.dispense_date"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; border: 1px solid #ddd;">
+                                            <span t-field="o.pharm_id.pharm_name"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; border: 1px solid #ddd;">
+                                            <span t-field="o.pat_id.pat_name"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; border: 1px solid #ddd;">
+                                            <span t-field="o.med_id.med_name"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center; color: #555;">
+                                            <span t-field="o.qty_dispensed"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: left; font-weight: 600;">
+                                            <span t-esc="'{:,.2f}'.format(o.total_price)"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <!-- صف الإجمالي الكلي -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
+                        <tr style="background-color: #f0e6c8; font-weight: 700; font-size: 12px;">
+                            <td style="padding: 8px; border: 1px solid #8a6d1f; width: 70%; text-align: right;">الإجمالي
+                                الكلي لكل الصيدليات
+                            </td>
+                            <td style="padding: 8px; border: 1px solid #8a6d1f; text-align: center; width: 10%;"
+                                dir="ltr">
+                                <span t-esc="sum(docs.mapped('qty_dispensed'))"/>
+                            </td>
+                            <td style="padding: 8px; border: 1px solid #8a6d1f; text-align: left; width: 20%;"
+                                dir="ltr">
+                                <span t-esc="'{:,.2f}'.format(sum(docs.mapped('total_price')))"/>
+                                SDG
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- تنبيه في حال عدم وجود بيانات -->
+                    <div t-if="not docs" style="text-align: center; padding: 40px; color: #999;">
+                        لا توجد عمليات صرف مطابقة لمعايير البحث المحددة.
+                    </div>
+
+                    <!-- منطقة التوقيع -->
+                    <table style="width: 100%; margin-top: 60px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%; text-align: center;">
+                                <div style="border-top: 1px solid #333; width: 200px; margin: 0 auto; padding-top: 6px; font-size: 11px; color: #555;">
+                                    توقيع الصيدلاني المسؤول
+                                </div>
+                            </td>
+                            <td style="width: 50%; text-align: center;">
+                                <div style="border-top: 1px solid #333; width: 200px; margin: 0 auto; padding-top: 6px; font-size: 11px; color: #555;">
+                                    ختم واعتماد الإدارة
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

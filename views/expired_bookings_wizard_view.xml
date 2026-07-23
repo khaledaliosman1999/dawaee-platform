@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_expired_bookings_wizard_form" model="ir.ui.view">
+        <field name="name">expired.bookings.report.wizard.form</field>
+        <field name="model">expired.bookings.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="تقرير الحجوزات الفاقدة">
+                <group>
+                    <field name="status_filter" widget="radio"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="pharmacy_id" readonly="is_readonly_pharmacy"/>
+                    <field name="is_readonly_pharmacy" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_print_report" type="object"
+                            string="طباعة التقرير" class="btn-primary"/>
+                    <button string="إلغاء" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_expired_bookings_wizard" model="ir.actions.act_window">
+        <field name="name">تقرير الحجوزات الفاقدة</field>
+        <field name="res_model">expired.bookings.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
