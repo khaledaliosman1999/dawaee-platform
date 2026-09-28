@@ -12,4 +12,4 @@ RUN chown -R odoo:odoo /mnt/extra-addons/dawaee_platform
 USER odoo
 
 # أمر التشغيل مع ربط المنفذ الذي يحدده Render تلقائياً
-CMD ["sh", "-c", "odoo --http-port=${PORT:-8069}"]
+CMD ["sh", "-c", "odoo --http-port=${PORT:-8069} --db_host=${HOST} --db_port=${DB_PORT:-5432} --db_user=${USER} --db_password=${PASSWORD}"]
